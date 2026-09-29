@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- macOS bundled sidecar builds now produce executable-signed `omp` binaries.
+
 ## [0.9.10] - 2026-09-24
 
 ### Added

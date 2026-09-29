@@ -267,6 +267,23 @@ async function runPackageScript(cwd: string, script: string, env: NodeJS.Process
 	if (exitCode !== 0) throw new Error(`${script} failed with exit code ${exitCode}`);
 }
 
+async function signMacBinary(filePath: string): Promise<void> {
+	const proc = Bun.spawn(
+		[
+			"/usr/bin/codesign",
+			"--force",
+			"--sign",
+			"-",
+			"--entitlements",
+			path.join(repoRoot, "scripts", "macos-entitlements.plist"),
+			filePath,
+		],
+		{ stdout: "inherit", stderr: "inherit" },
+	);
+	const exitCode = await proc.exited;
+	if (exitCode !== 0) throw new Error(`codesign failed with exit code ${exitCode}`);
+}
+
 async function embedNativeForTarget(target: SidecarTarget): Promise<void> {
 	const env =
 		target.platformTag === `${process.platform}-${process.arch}`
@@ -287,6 +304,7 @@ async function restoreGeneratedAssets(): Promise<void> {
 
 const target = resolveTarget();
 const out = argValue("--out") ?? target.out;
+const shouldAdhocSign = process.platform === "darwin" && (!target.target || target.platformTag.startsWith("darwin-"));
 
 const require = createRequire(import.meta.url);
 const transformersVersion = (require("@huggingface/transformers/package.json") as { version?: string }).version;
@@ -304,7 +322,9 @@ try {
 			outfile: out,
 			transformersVersion,
 			...(target.target ? { target: target.target } : {}),
+			skipBuiltinCodesign: shouldAdhocSign,
 		});
+		if (shouldAdhocSign) await signMacBinary(out);
 	} finally {
 		// Compiled assets are temporary source substitutions. Reset every family
 		// even when generation or compilation fails; Promise.all starts both
