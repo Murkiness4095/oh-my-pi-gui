@@ -24,6 +24,11 @@ const VALID_PATHS: Record<string, true> = {
 	"/api/sync": true,
 };
 
+/** Endpoints that mutate state — the stats server answers these with 405 on GET. */
+const POST_PATHS: Record<string, true> = {
+	"/api/sync": true,
+};
+
 export class StatsClient {
 	#port: number;
 	#available = false;
@@ -90,7 +95,10 @@ export class StatsClient {
 		const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
 		try {
-			const resp = await fetch(url.toString(), { signal: controller.signal });
+			const resp = await fetch(url.toString(), {
+				method: POST_PATHS[path] ? "POST" : "GET",
+				signal: controller.signal,
+			});
 			if (!resp.ok) {
 				throw new Error(`Stats API error: ${resp.status} ${resp.statusText}`);
 			}

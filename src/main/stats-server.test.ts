@@ -1,4 +1,6 @@
 import * as fs from "node:fs/promises";
+import * as http from "node:http";
+import type { AddressInfo } from "node:net";
 import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, expect, test, vi } from "vitest";
@@ -66,5 +68,28 @@ process.exit(1);
 	} finally {
 		server.kill();
 		await fs.rm(directory, { recursive: true, force: true });
+	}
+});
+
+test("fetch sends POST for /api/sync, which 405s a plain GET", async () => {
+	const methods: string[] = [];
+	const server = http.createServer((req, res) => {
+		methods.push(`${req.method} ${req.url}`);
+		if (req.url === "/api/sync" && req.method !== "POST") {
+			res.writeHead(405).end(JSON.stringify({ error: "POST required" }));
+			return;
+		}
+		res.writeHead(200, { "content-type": "application/json" }).end("{}");
+	});
+	const listening = Promise.withResolvers<void>();
+	server.listen(0, "127.0.0.1", () => listening.resolve());
+	await listening.promise;
+	try {
+		const client = new StatsClient((server.address() as AddressInfo).port);
+		await expect(client.fetch("/api/sync")).resolves.toEqual({});
+		await client.fetch("/api/stats/models");
+		expect(methods).toEqual(["POST /api/sync", "GET /api/stats/models"]);
+	} finally {
+		server.close();
 	}
 });
