@@ -149,27 +149,28 @@ export function FeedbackDialog() {
 							)}
 						</span>
 					</label>
-					<label className="flex items-start gap-2.5 text-omp-sm text-(--omp-text)">
-						<input
-							type="checkbox"
-							checked={includeErrors}
-							onChange={event => setIncludeErrors(event.target.checked)}
-							className="mt-0.5 accent-(--omp-accent)"
-						/>
-						<span className="min-w-0 flex-1">
-							{t("feedback.includeErrors")}
-							{includeErrors && (
-								<details className="mt-1">
-									<summary className="cursor-pointer text-omp-xs text-(--omp-dim) hover:text-(--omp-muted)">
-										{t("feedback.errorsPreview", { count: errorTail.length })}
-									</summary>
-									<pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap break-words rounded-md bg-(--omp-code-bg) p-2 font-mono text-omp-xs text-(--omp-dim)">
-										{errorPreview || t("feedback.errorsEmpty")}
-									</pre>
-								</details>
-							)}
-						</span>
-					</label>
+					<div>
+						<label className="flex items-start gap-2.5 text-omp-sm text-(--omp-text)">
+							<input
+								type="checkbox"
+								checked={includeErrors}
+								onChange={event => setIncludeErrors(event.target.checked)}
+								className="mt-0.5 accent-(--omp-accent)"
+							/>
+							<span>{t("feedback.includeErrors")}</span>
+						</label>
+						{/* Kept outside the label: clicking the preview to read/select text must not toggle the box. */}
+						{includeErrors && (
+							<details className="mt-1 ml-6">
+								<summary className="cursor-pointer text-omp-xs text-(--omp-dim) hover:text-(--omp-muted)">
+									{t("feedback.errorsPreview", { count: errorTail.length })}
+								</summary>
+								<pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap break-words rounded-md bg-(--omp-code-bg) p-2 font-mono text-omp-xs text-(--omp-dim)">
+									{errorPreview || t("feedback.errorsEmpty")}
+								</pre>
+							</details>
+						)}
+					</div>
 				</div>
 
 				<p className="text-omp-xs leading-relaxed text-(--omp-dim)">{t("feedback.note")}</p>

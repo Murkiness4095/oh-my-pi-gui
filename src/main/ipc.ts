@@ -404,8 +404,8 @@ export function registerIpcHandlers(deps: IpcDeps): void {
 			const fd = await fsp.open(runtimeLogPath(), "r");
 			try {
 				const size = Math.min(stat.size, 256 * 1024);
-				const { buffer } = await fd.read(Buffer.alloc(size), 0, size, stat.size - size);
-				return buffer.toString("utf8").split("\n").filter(Boolean).slice(-limit);
+				const { bytesRead, buffer } = await fd.read(Buffer.alloc(size), 0, size, stat.size - size);
+				return buffer.subarray(0, bytesRead).toString("utf8").split("\n").filter(Boolean).slice(-limit);
 			} finally {
 				await fd.close();
 			}

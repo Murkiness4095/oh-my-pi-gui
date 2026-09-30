@@ -78,7 +78,7 @@ function toErrorLine(raw: string): string | null {
 	}
 }
 
-/** Last `count` non-empty lines, newest last, bounded to MAX_ERRORS_CHARS. */
+/** Newest-last render of the given tail lines, bounded to MAX_ERRORS_CHARS. */
 export function formatErrorTail(rawLines: readonly string[]): string {
 	const lines: string[] = [];
 	let size = 0;

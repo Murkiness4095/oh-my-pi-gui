@@ -8,10 +8,12 @@ interface RootErrorBoundaryProps {
 
 /** Opens a prefilled issue with the crash message; the user reviews and posts on GitHub. */
 function reportOnGithub(error: Error): void {
-	void window.omp?.system
-		?.info()
+	const omp = window.omp;
+	if (!omp) return;
+	void omp.system
+		.info()
 		.then(info =>
-			window.omp.system.openExternal(
+			omp.system.openExternal(
 				buildIssueUrl({
 					kind: "bug",
 					title: `App crash: ${error.message.slice(0, 80)}`,
