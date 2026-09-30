@@ -2,10 +2,22 @@
 
 ## [Unreleased]
 
+## [0.9.11] - 2026-09-30
+
+### Added
+
+- Native capability panels expose model roles, extensions, MCP, SSH, security, and session controls.
+
+### Changed
+
+- Bundled agent upgraded to omp 18.4.4.
+- Background sessions remain active until the agent reports that all work has settled.
+- Platform download links now resolve explicitly to the matching macOS or Windows build.
+
 ### Fixed
 
-- macOS bundled sidecar builds now produce executable-signed `omp` binaries.
 - Large session transcripts now restore through bounded pages instead of overflowing the RPC response.
+- Bundled macOS sidecars are executable-signed for reliable app packaging.
 
 ## [0.9.10] - 2026-09-24
 
