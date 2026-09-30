@@ -294,17 +294,11 @@ The capture script renders the actual Electron GUI using a fresh temporary HOME,
 ### Release process (maintainers)
 
 <details>
-<summary><b>Sync, build all targets, smoke-test the installers, then publish</b></summary>
+<summary><b>Canonical procedure: the Release Runbook in AGENTS.md</b></summary>
 
-Releases belong only to [`nornzach/oh-my-pi-gui`](https://github.com/nornzach/oh-my-pi-gui/releases). Preserve the two-repository boundary throughout:
+The standard, step-by-step release procedure is the [Release Runbook](AGENTS.md#release-runbook) in `AGENTS.md`. Every release follows it exactly — checkout preconditions, upstream sync, version/CHANGELOG/README prep and verification, commit + `vX.Y.Z` tag + push, all three sidecar builds with smoke tests, installer builds with per-artifact inspection, then the GitHub Release carrying both DMGs, both ZIPs, the Windows NSIS and portable installers, and update metadata.
 
-1. **Start with clean checkouts and sync upstream.** From the **monorepo root**, run `bash packages/gui/scripts/sync-upstream.sh`. It fetches/merges `upstream/main`, installs dependencies, re-provisions natives, generates the statistics assets, rebuilds/smoke-tests the sidecar, and builds/checks/tests the GUI. If there are conflicts, resolve and commit the monorepo merge, then run `SKIP_MERGE=1 bash packages/gui/scripts/sync-upstream.sh`. Do not substitute a hand-rolled merge. Review and commit any remaining monorepo changes there; push them only to the fork's `origin`.
-2. **Prepare the GUI release.** In `packages/gui/`, bump `package.json`, write the release's `CHANGELOG.md` entry, and update both language sections' install links and source/release notes.
-3. **Verify the GUI:** `bunx vitest run && bun run check:types && bun run build`; check touched supported files with Biome.
-4. **Record the release source.** Commit GUI release changes in the GUI repository, tag `vX.Y.Z`, and push `main` plus the tag to its `origin`. Keep both checkouts clean before producing release artifacts.
-5. **Build all sidecars:** `bun run build:omp && bun run build:omp:x64 && bun run build:omp:win`. Run the two macOS sidecars and the Windows sidecar's `--smoke-test` on compatible hosts. Cross-compilation alone is not runtime verification.
-6. **Build and inspect installers:** build both DMGs with the macOS commands and Windows installers with `bun run package:win -- --publish never`. Mount each DMG; verify its app seal with `codesign --verify --deep --strict --verbose=2 "<path-to-omp.app>"`, its bundled sidecar architecture with `file "<path-to-omp.app>/Contents/Resources/omp"`, and the Windows package's `win-unpacked/resources/omp.exe` with `file`. On compatible hosts, launch each package, confirm sidecar `ready`, a successful `get_settings` RPC, and a settings toggle that persists.
-7. **Publish only verified artifacts.** Publish a GitHub Release with both DMGs, the Windows NSIS and portable installers, generated update metadata, and the changelog. Record the monorepo commit used for the sidecars, especially when it differs from upstream `main`. Never commit sidecar binaries or push to `upstream`.
+Releases belong only to [`nornzach/oh-my-pi-gui`](https://github.com/nornzach/oh-my-pi-gui/releases). Never commit sidecar binaries; never push to `upstream`.
 
 </details>
 
@@ -588,17 +582,11 @@ bun scripts/capture-showcase.ts
 ### 发布流程（维护者）
 
 <details>
-<summary><b>同步、构建全部目标、烟测安装包，再发布</b></summary>
+<summary><b>标准流程：AGENTS.md 中的 Release Runbook</b></summary>
 
-发布只属于 [`nornzach/oh-my-pi-gui`](https://github.com/nornzach/oh-my-pi-gui/releases)，全程保持两个仓库的边界：
+标准的分步发布流程以 `AGENTS.md` 的 [Release Runbook](AGENTS.md#release-runbook) 为准，每次发布严格照此执行——检出前置检查、上游同步、版本/CHANGELOG/README 准备与验证、提交 + `vX.Y.Z` 标签 + 推送、三个 sidecar 构建与烟测、安装包构建与逐产物检查，最后是携带两个 DMG、两个 ZIP、Windows NSIS 与便携版安装包及更新元数据的 GitHub Release。
 
-1. **从干净检出开始并同步上游。**在 **monorepo 根目录**执行 `bash packages/gui/scripts/sync-upstream.sh`。脚本拉取/合并 `upstream/main`、安装依赖、准备原生插件、生成统计资源、重建并烟测 sidecar，再构建、检查和测试 GUI。冲突需在 monorepo 中解决并提交合并，然后运行 `SKIP_MERGE=1 bash packages/gui/scripts/sync-upstream.sh`。不要用手动拼装的 merge 流程替代。检查并在 monorepo 中提交其余改动，只推送到 fork 的 `origin`。
-2. **准备 GUI 发布。**在 `packages/gui/` 提升 `package.json` 版本，撰写本次发布的 `CHANGELOG.md`，更新两种语言的安装链接与源码/发布说明。
-3. **验证 GUI：**`bunx vitest run && bun run check:types && bun run build`，并用 Biome 检查修改过且受其支持的文件。
-4. **记录发布源码。**GUI 发布改动在 GUI 仓库提交，打 `vX.Y.Z` 标签，向它的 `origin` 推送 `main` 与标签。生成发布产物前保持两个检出干净。
-5. **构建全部 sidecar：**`bun run build:omp && bun run build:omp:x64 && bun run build:omp:win`。在兼容宿主上运行两个 macOS sidecar 与 Windows sidecar 的 `--smoke-test`；交叉编译成功不等于运行验证通过。
-6. **构建并检查安装包：**按 macOS 命令构建两个 DMG，按 `bun run package:win -- --publish never` 构建 Windows 安装包。逐个挂载 DMG，用 `codesign --verify --deep --strict --verbose=2 "<path-to-omp.app>"` 验证应用签名封装，用 `file "<path-to-omp.app>/Contents/Resources/omp"` 检查内置 sidecar 架构，并用 `file` 检查 Windows 包的 `win-unpacked/resources/omp.exe`。在兼容宿主上启动各平台应用，确认 sidecar `ready`、`get_settings` RPC 成功，以及设置开关可以持久化。
-7. **只发布验证过的产物。**GitHub Release 附带两个 DMG、Windows NSIS 与便携版安装包、更新元数据和 changelog，并记录构建 sidecar 使用的 monorepo commit，尤其在其不同于上游 `main` 时。绝不提交 sidecar 二进制，也不向 `upstream` 推送。
+发布只属于 [`nornzach/oh-my-pi-gui`](https://github.com/nornzach/oh-my-pi-gui/releases)。绝不提交 sidecar 二进制，也不向 `upstream` 推送。
 
 </details>
 

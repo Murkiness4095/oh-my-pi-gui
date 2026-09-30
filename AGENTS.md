@@ -60,12 +60,98 @@ The GUI runs the agent as a **bundled sidecar** (`resources/omp`, a compiled `Bu
 - Packaging reads the sidecar via `extraResources` (`electron-builder.yml` → `resources/omp` for arm64, `electron-builder.x64.yml` → `resources/omp.x64` for Intel). Building x64 from the default config ships the wrong-arch sidecar — always package Intel with `bun run package:mac:x64` (the x64 config), never plain `package:mac`.
 - A packaged GUI never consults a system-installed `omp`. `src/main/index.ts` (`resolveBundledOmp`) only accepts the bundled binary; missing binary = actionable error, not a fallback.
 
+## Release Runbook
+
+The standard procedure for every release. Run the phases **in order**; never skip, reorder, or substitute hand-rolled equivalents — each step guards a failure that has actually happened (wrong-arch sidecars, stale natives, missing `latest-mac.yml`, unsigned apps). If a step cannot run, stop and surface it rather than improvising around it.
+
+Conventions, fixed for every release:
+
+- Version `X.Y.Z` is semver; the tag is exactly `vX.Y.Z`.
+- Release commit message is `release(gui): vX.Y.Z` (older `chore(release):` entries predate this convention — do not copy them).
+- Everything GUI-side commits and tags in **this** repo (`packages/gui/.git`) and pushes to `origin` (`nornzach/oh-my-pi-gui`). Monorepo changes commit at the monorepo root and push to the fork's `origin`. `upstream` is never a push target.
+
+### Phase 0 — Preconditions
+
+1. GUI checkout on `main`, clean, current: `git -C packages/gui status` and `git -C packages/gui pull --ff-only`.
+2. Monorepo checkout clean — `git status` at the monorepo root shows nothing but the intentionally untracked `packages/gui/`.
+3. Version number chosen; changelog content drafted.
+
+### Phase 1 — Upstream sync (mandatory, every release)
+
+```bash
+bash packages/gui/scripts/sync-upstream.sh        # run from anywhere; it cds to the monorepo root
+# merge conflict → resolve at the MONOREPO root → git add -A && git commit →
+SKIP_MERGE=1 bash packages/gui/scripts/sync-upstream.sh
+```
+
+Commit remaining monorepo changes at the monorepo root and push to the fork's `origin`. Never push to `upstream`.
+
+### Phase 2 — Release prep (inside `packages/gui/`)
+
+1. Bump `version` in `package.json`.
+2. Write the release's `CHANGELOG.md` section.
+3. Update README install links, version mentions, and release notes in **both** the English and 中文 sections — keep them in sync.
+4. Verify: `bunx vitest run && bun run check:types && bun run build`, plus `bunx biome check <touched files>`.
+
+### Phase 3 — Commit, tag, push (GUI repo only)
+
+```bash
+git commit -am "release(gui): vX.Y.Z"
+git tag vX.Y.Z
+git push origin main && git push origin vX.Y.Z
+```
+
+Both checkouts must be clean before any artifact is produced.
+
+### Phase 4 — Sidecars (all three, every release)
+
+```bash
+bun run build:omp          # → resources/omp     (darwin-arm64)
+bun run build:omp:x64      # → resources/omp.x64 (darwin-x64)
+bun run build:omp:win      # → resources/omp.exe (windows-x64)
+file resources/omp resources/omp.x64            # confirm each architecture
+bun scripts/smoke-sidecar.mjs resources/omp     # + .x64 on an Intel host, .exe on Windows
+```
+
+Cross-compilation is not runtime verification — smoke-test each binary on a compatible host.
+
+### Phase 5 — Installers
+
+```bash
+bun run package:mac:arm64 -- --publish never
+bun run package:mac:x64   -- --publish never   # dedicated x64 config — never plain package:mac
+bun run package:win       -- --publish never
+```
+
+Inspect every artifact before publishing:
+
+- Mount each DMG; verify the seal: `codesign --verify --deep --strict --verbose=2 "<path>/omp.app"`.
+- `file "<path>/omp.app/Contents/Resources/omp"` — the bundled sidecar arch must match the DMG (`omp-X.Y.Z-arm64.dmg` = arm64; `omp-X.Y.Z.dmg` = Intel).
+- Launch each package on a compatible host: sidecar reaches `ready`, `get_settings` RPC succeeds, one settings toggle persists.
+- Windows: `file win-unpacked/resources/omp.exe`.
+
+### Phase 6 — Publish
+
+Create the GitHub Release on tag `vX.Y.Z` with:
+
+- `omp-X.Y.Z-arm64.dmg` and `omp-X.Y.Z.dmg`, plus both macOS ZIPs
+- `omp-X.Y.Z-setup.exe` and `omp-X.Y.Z-portable.exe`
+- All generated update metadata — critically, a `latest-mac.yml` covering **both** architectures (the built-in updater resolves DMGs from it; a release without it, or with only one architecture's entries, breaks update checks)
+- The changelog as the release body; record the monorepo commit the sidecars were built from, especially when it isn't upstream `main`
+
+Never commit sidecar binaries. Never push to `upstream`.
+
+### Phase 7 — Post-release
+
+- `site/` needs no edit: version strings and DMG links resolve from the GitHub releases API at page load.
+- Verify the release page lists every expected asset and that the updater feed resolves `latest-mac.yml`.
+
 ## Build, Test, Release
 
 - Check: `bun run check:types` (tsc) and `bunx biome check .` — keep touched files clean even if legacy diagnostics remain.
 - Test: `bunx vitest run` (full suite must stay green).
 - Build: `bun run build` (electron-vite → `out/`), then `bun run package:mac:arm64 -- --publish never` (arm64) or `bun run package:mac:x64 -- --publish never` (Intel).
-- Release flow: bump `version` in `package.json`, write the CHANGELOG section, update README install links, commit, tag `vX.Y.Z`, push `main` + tag to `origin`, build both DMGs, smoke-test each mounted DMG (sidecar `ready`, `get_settings` RPC, one settings toggle), then publish the GitHub Release with both DMGs, both ZIPs and the combined `latest-mac.yml` — the built-in updater resolves the matching DMG from that file, so a release without it (or with only one architecture's entries) breaks update checks.
+- **Every release follows the [Release Runbook](#release-runbook) below, phase by phase, no substitutions.**
 - Every release's DMGs embed the sidecar compiled from the monorepo — record the monorepo commit in the release notes if it isn't upstream `main`.
 - **The public site is `site/`** (`site/index.html` + `site/assets/`). Pages is configured as `build_type=workflow`, so `.github/workflows/pages.yml` is the only publisher: a push to `main` touching `site/**` deploys it. Its version string and DMG links are read from the GitHub releases API at page load, so a release needs **no site edit**; the values in the HTML are only the no-JS fallback.
 
