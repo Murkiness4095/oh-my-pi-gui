@@ -24,6 +24,7 @@ export type RpcCommand =
 	| { id?: string; type: "set_host_tools"; tools: HostToolDefinition[] }
 	| { id?: string; type: "set_host_uri_schemes"; schemes: HostUriSchemeDefinition[] }
 	| { id?: string; type: "set_subagent_subscription"; level: SubagentSubscriptionLevel }
+	| { id?: string; type: "set_event_filter"; events: string[] | null }
 	| { id?: string; type: "get_subagents" }
 	| { id?: string; type: "get_subagent_messages"; subagentId?: string; sessionFile?: string; fromByte?: number }
 	| { id?: string; type: "set_model"; provider: string; modelId: string }
@@ -116,6 +117,7 @@ export type RpcCommand =
 	| { id?: string; type: "get_themes" }
 	| { id?: string; type: "get_theme_colors"; name: string }
 	| { id?: string; type: "get_transcript" }
+	| { id?: string; type: "get_transcript_page"; cursor?: string; limit?: number }
 	| { id?: string; type: "get_copy_targets" }
 
 	// Plan approval (structured)
@@ -1046,6 +1048,10 @@ export interface RpcSessionState {
 	autoRetryEnabled: boolean;
 	messageCount: number;
 	queuedMessageCount: number;
+	/** Background jobs or deliveries can still inject a follow-up and wake the session. */
+	hasPendingAsyncWork?: boolean;
+	/** True only when the session is idle with no queued or pending async work. */
+	isSettled?: boolean;
 	todoPhases: TodoPhase[];
 	systemPrompt?: string[];
 	dumpTools?: ToolDump[];
@@ -1832,6 +1838,7 @@ export type OutboundFrame =
 	| SubagentFrame
 	| AvailableCommandsUpdateFrame
 	| PromptResultFrame
+	| SessionSettledFrame
 	| CommandOutputFrame
 	| SessionInfoUpdateFrame
 	| ConfigUpdateFrame
@@ -1866,11 +1873,29 @@ export interface RpcForeignSessionInfo {
 	messageCount?: number;
 	firstMessage?: string;
 }
+/** Prompt terminal status introduced by the upstream RPC lifecycle contract. */
+export type RpcPromptStatus = "completed" | "aborted" | "error";
+
+export interface RpcPromptError {
+	message: string;
+	provider?: string;
+	model?: string;
+	httpStatus?: number;
+	retryable: boolean;
+}
 
 export interface PromptResultFrame {
 	type: "prompt_result";
 	id?: string;
 	agentInvoked: boolean;
+	status?: RpcPromptStatus;
+	error?: RpcPromptError;
+	/** False means background work can still wake the session. */
+	sessionSettled?: boolean;
+}
+
+export interface SessionSettledFrame {
+	type: "session_settled";
 }
 
 export interface CommandOutputFrame {
@@ -1906,9 +1931,9 @@ export type AgentSessionEvent =
 	| { type: "agent_end"; messages?: AgentMessage[]; isTerminal?: boolean; telemetry?: unknown; coverage?: unknown }
 	| { type: "turn_start" }
 	| { type: "turn_end"; message?: AgentMessage; toolResults?: unknown[] }
-	| { type: "message_start"; message: AgentMessage }
-	| { type: "message_update"; message: AgentMessage; assistantMessageEvent: AssistantMessageEvent }
-	| { type: "message_end"; message: AgentMessage }
+	| { type: "message_start"; messageId?: string; message: AgentMessage }
+	| { type: "message_update"; messageId?: string; message: AgentMessage; assistantMessageEvent: AssistantMessageEvent }
+	| { type: "message_end"; messageId?: string; message: AgentMessage }
 	| {
 			type: "tool_execution_start";
 			toolCallId: string;

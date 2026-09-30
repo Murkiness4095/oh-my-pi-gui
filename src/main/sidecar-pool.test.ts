@@ -301,6 +301,29 @@ describe("SidecarPool tabs", () => {
 		expect(pool.tabsForWindow(fw.win)[1]?.status).toBe("ready");
 	});
 
+	it("keeps a tab running until upstream background work settles", () => {
+		const { pool, sidecars } = fakePool();
+		const fw = fakeWindow(1);
+		pool.acquire("/a", fw.win, "tab-a");
+		const sidecar = sidecars[0];
+		sidecar?.emitStatus("ready");
+		fw.sent.length = 0;
+
+		sidecar?.emit("promptResult", {
+			type: "prompt_result",
+			agentInvoked: true,
+			status: "completed",
+			sessionSettled: false,
+		});
+		// EventBatcher can deliver agent_end after prompt_result; it must not
+		// clear the running state while the session still awaits settlement.
+		sidecar?.emitAgentEvents(["agent_start", "agent_end"]);
+		expect((pool.tabsForWindow(fw.win)[0] as IpcTabStatusPayload).status).toBe("running");
+
+		sidecar?.emit("sessionSettled", { type: "session_settled" });
+		expect((pool.tabsForWindow(fw.win)[0] as IpcTabStatusPayload).status).toBe("ready");
+	});
+
 	it("re-wires forwarding on switch without duplicating listeners", () => {
 		const { pool, sidecars } = fakePool();
 		const fw = fakeWindow(1);

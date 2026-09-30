@@ -5,6 +5,7 @@
 ### Fixed
 
 - macOS bundled sidecar builds now produce executable-signed `omp` binaries.
+- Large session transcripts now restore through bounded pages instead of overflowing the RPC response.
 
 ## [0.9.10] - 2026-09-24
 

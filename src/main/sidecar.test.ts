@@ -4,7 +4,13 @@ import * as path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import Store from "electron-store";
 import { describe, expect, it, vi } from "vitest";
-import type { CommandOutputFrame, PromptResultFrame, SidecarStatus, SidecarStatusPayload } from "../shared/rpc-types";
+import type {
+	CommandOutputFrame,
+	PromptResultFrame,
+	SessionSettledFrame,
+	SidecarStatus,
+	SidecarStatusPayload,
+} from "../shared/rpc-types";
 import { missingSidecarMessage, type SidecarFailureReport, SidecarManager } from "./sidecar";
 
 async function waitForReady(sidecar: SidecarManager): Promise<void> {
@@ -44,6 +50,49 @@ describe("SidecarManager", () => {
 
 			const launch: unknown = JSON.parse(await fs.readFile(logPath, "utf8"));
 			expect(launch).toEqual(["--mode", "rpc-ui", "--session", sessionPath]);
+		} finally {
+			sidecar.dispose();
+			await fs.rm(tempDir, { recursive: true, force: true });
+		}
+	});
+
+	it("configures v2 sidecars with the GUI event filter", async () => {
+		const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "omp-gui-sidecar-filter-"));
+		const commandLog = path.join(tempDir, "commands.json");
+		const binaryPath = path.join(tempDir, "fake-sidecar.ts");
+		await fs.writeFile(
+			binaryPath,
+			`#!/usr/bin/env bun\nimport * as fs from "node:fs/promises";\nimport { createInterface } from "node:readline";\nconst commands: unknown[] = [];\nconst rl = createInterface({ input: process.stdin });\nprocess.stdout.write(JSON.stringify({ type: "ready", protocolVersion: 2, supportedProtocolVersions: [1, 2], maxFrameBytes: 1048576, maxReassembledFrameBytes: 67108864 }) + "\\n");\nrl.on("line", line => {\n\tconst command = JSON.parse(line) as { id?: string; type: string; events?: string[] | null };\n\tcommands.push(command);\n\tvoid fs.writeFile(${JSON.stringify(commandLog)}, JSON.stringify(commands));\n\tprocess.stdout.write(JSON.stringify({ type: "response", id: command.id, command: command.type, success: true, data: {} }) + "\\n");\n});\n`,
+		);
+		await fs.chmod(binaryPath, 0o755);
+
+		const sidecar = new SidecarManager({ binaryPath, cwd: tempDir });
+		try {
+			const ready = waitForReady(sidecar);
+			sidecar.start();
+			await ready;
+			await expect
+				.poll(
+					async () => {
+						try {
+							return JSON.parse(await fs.readFile(commandLog, "utf8")) as Array<{
+								type: string;
+								events?: string[] | null;
+							}>;
+						} catch {
+							return [];
+						}
+					},
+					{ timeout: 5_000, interval: 25 },
+				)
+				.toHaveLength(2);
+
+			const commands = JSON.parse(await fs.readFile(commandLog, "utf8")) as Array<{
+				type: string;
+				events?: string[] | null;
+			}>;
+			expect(commands.map(command => command.type)).toEqual(["negotiate_protocol", "set_event_filter"]);
+			expect(commands[1]?.events).toContain("message_update");
 		} finally {
 			sidecar.dispose();
 			await fs.rm(tempDir, { recursive: true, force: true });
@@ -104,12 +153,12 @@ describe("SidecarManager", () => {
 		}
 	});
 
-	it("routes prompt results and text-mode command output as dedicated frames", async () => {
+	it("routes prompt results, settled state, and text-mode command output as dedicated frames", async () => {
 		const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "omp-gui-sidecar-output-"));
 		const binaryPath = path.join(tempDir, "fake-sidecar.ts");
 		await fs.writeFile(
 			binaryPath,
-			`#!/usr/bin/env bun\nprocess.stdout.write(JSON.stringify({ type: "ready", protocolVersion: 1, supportedProtocolVersions: [1] }) + "\\n");\nprocess.stdout.write(JSON.stringify({ type: "prompt_result", id: "local-command", agentInvoked: false }) + "\\n");\nprocess.stdout.write(JSON.stringify({ type: "command_output", text: "Enabled models" }) + "\\n");\nprocess.stdin.resume();\n`,
+			`#!/usr/bin/env bun\nprocess.stdout.write(JSON.stringify({ type: "ready", protocolVersion: 1, supportedProtocolVersions: [1] }) + "\\n");\nprocess.stdout.write(JSON.stringify({ type: "prompt_result", id: "local-command", agentInvoked: false }) + "\\n");\nprocess.stdout.write(JSON.stringify({ type: "session_settled" }) + "\\n");\nprocess.stdout.write(JSON.stringify({ type: "command_output", text: "Enabled models" }) + "\\n");\nprocess.stdin.resume();\n`,
 		);
 		await fs.chmod(binaryPath, 0o755);
 
@@ -118,10 +167,13 @@ describe("SidecarManager", () => {
 		sidecar.once("commandOutput", frame => received.resolve(frame as CommandOutputFrame));
 		const promptResult = Promise.withResolvers<PromptResultFrame>();
 		sidecar.once("promptResult", frame => promptResult.resolve(frame as PromptResultFrame));
+		const settled = Promise.withResolvers<SessionSettledFrame>();
+		sidecar.once("sessionSettled", frame => settled.resolve(frame as SessionSettledFrame));
 		try {
 			sidecar.start();
-			expect(await Promise.all([promptResult.promise, received.promise])).toEqual([
+			expect(await Promise.all([promptResult.promise, settled.promise, received.promise])).toEqual([
 				{ type: "prompt_result", id: "local-command", agentInvoked: false },
+				{ type: "session_settled" },
 				{ type: "command_output", text: "Enabled models" },
 			]);
 		} finally {

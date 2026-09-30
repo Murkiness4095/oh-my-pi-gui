@@ -124,7 +124,6 @@ export class BenchmarkRunner {
 		let stderr = "";
 		let outputBytes = 0;
 		let settled = false;
-		let timeout: NodeJS.Timeout | undefined;
 		const { promise, resolve } = Promise.withResolvers<IpcBenchmarkRunResult>();
 		const finish = (result: IpcBenchmarkRunResult) => {
 			if (settled) return;
@@ -165,7 +164,7 @@ export class BenchmarkRunner {
 				});
 			}
 		});
-		timeout = setTimeout(() => {
+		const timeout = setTimeout(() => {
 			this.#terminate("Benchmark timed out after 15 minutes");
 		}, BENCHMARK_TIMEOUT_MS);
 		timeout.unref();

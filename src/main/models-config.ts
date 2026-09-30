@@ -397,7 +397,7 @@ function mergeModel(existingModels: unknown, input: CustomProviderModelInput): R
 				| Record<string, unknown>
 				| undefined)
 		: undefined;
-	const merged: Record<string, unknown> = { ...(existing ?? {}) };
+	const merged: Record<string, unknown> = { ...existing };
 	setOrDelete(merged, "name", input.name);
 	setOrDelete(merged, "api", input.api);
 	setOrDelete(merged, "baseUrl", input.baseUrl);

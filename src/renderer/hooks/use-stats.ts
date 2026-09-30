@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const POLL_INTERVAL_MS = 30_000;
 /** While the bundled stats server is still booting, retry quickly instead of waiting a full poll tick. */
@@ -29,7 +29,10 @@ function unavailableError(result: unknown): string | null {
 
 /** One visible query at a time; stale responses never cross a path/range boundary. */
 function useStatsResource<T>(path: string, params: Record<string, string> | undefined, expectList: boolean) {
-	const serializedParams = JSON.stringify(Object.entries(params ?? {}).sort(([a], [b]) => a.localeCompare(b)));
+	const sortedParams = Object.entries(params ?? {}).sort(([a], [b]) => a.localeCompare(b));
+	const serializedParams = JSON.stringify(sortedParams);
+	// biome-ignore lint/correctness/useExhaustiveDependencies: serializedParams is the semantic key for this freshly rebuilt entries array.
+	const queryParams = useMemo(() => Object.fromEntries(sortedParams), [serializedParams]);
 	const key = `${path}:${serializedParams}`;
 	const [state, setState] = useState<StatsState<T>>({
 		key,
@@ -46,7 +49,6 @@ function useStatsResource<T>(path: string, params: Record<string, string> | unde
 		let inFlight = false;
 		let retryTimer: number | undefined;
 		let unavailableSince: number | null = null;
-		const queryParams = Object.fromEntries(JSON.parse(serializedParams) as [string, string][]);
 		const load = async () => {
 			if (!active || inFlight) return;
 			inFlight = true;
@@ -98,7 +100,7 @@ function useStatsResource<T>(path: string, params: Record<string, string> | unde
 			window.clearInterval(timer);
 			document.removeEventListener("visibilitychange", refreshVisible);
 		};
-	}, [expectList, key, path, serializedParams]);
+	}, [expectList, key, path, queryParams]);
 
 	return state.key === key
 		? { ...state, refetch }

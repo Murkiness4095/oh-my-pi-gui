@@ -53,6 +53,7 @@ import {
 	type RpcLiveUpdateFrame,
 	type RpcResponse,
 	type SessionInfoUpdateFrame,
+	type SessionSettledFrame,
 	type SidecarStatus,
 	type SidecarStatusPayload,
 	type SubagentFrame,
@@ -88,6 +89,8 @@ interface PoolEntry {
 	status: SidecarStatus;
 	/** Agent run in flight (agent_start seen, no agent_end yet) — synthesized "running". */
 	running: boolean;
+	/** Prompt yielded while background work can still wake the session. */
+	awaitingSessionSettled: boolean;
 	/** Automatic transcript compaction state once observed — true blocks session mutation. */
 	compacting?: boolean;
 	/** Session meta cached from session_info_update (TAB_STATUS / GET_TABS). */
@@ -212,6 +215,7 @@ export class SidecarPool {
 				worktree,
 				status: sidecar.status,
 				running: false,
+				awaitingSessionSettled: false,
 				detachFull: null,
 			};
 			if (title) entry.title = title;
@@ -268,6 +272,7 @@ export class SidecarPool {
 			// A restart/exit kills any in-flight run along with the process.
 			if (payload.status !== "ready") {
 				entry.running = false;
+				entry.awaitingSessionSettled = false;
 				entry.compacting = undefined;
 			}
 			forwardToWindow(win, IPC_EVENTS.TAB_STATUS, tabStatusPayload(entry));
@@ -288,8 +293,23 @@ export class SidecarPool {
 			// tab's title/id updates without waiting for a status flip.
 			forwardToWindow(win, IPC_EVENTS.TAB_STATUS, tabStatusPayload(entry));
 		});
-		// Run-state tracking works off the event stream (connection status never
-		// re-fires at run end), so background tabs report running → ready too.
+		const setRunning = (running: boolean): void => {
+			const wasBusy = entry.running || entry.compacting === true;
+			entry.running = running;
+			const busy = entry.running || entry.compacting === true;
+			if (busy !== wasBusy) forwardToWindow(win, IPC_EVENTS.TAB_STATUS, tabStatusPayload(entry));
+		};
+		sidecar.on("promptResult", (frame: PromptResultFrame) => {
+			if (typeof frame.sessionSettled !== "boolean") return;
+			entry.awaitingSessionSettled = !frame.sessionSettled;
+			setRunning(!frame.sessionSettled);
+		});
+		sidecar.on("sessionSettled", (_frame: SessionSettledFrame) => {
+			entry.awaitingSessionSettled = false;
+			setRunning(false);
+		});
+		// Agent-end means one run yielded; upstream prompt/session-settled frames
+		// keep background async work represented as running until it is quiet.
 		sidecar.on("events", (events: AgentSessionEvent[]) => {
 			const wasBusy = entry.running || entry.compacting === true;
 			const wasPlaceholder = entry.placeholder;
@@ -297,8 +317,9 @@ export class SidecarPool {
 				if (event.type === "agent_start") {
 					entry.running = true;
 					entry.placeholder = false;
-				} else if (event.type === "agent_end") entry.running = false;
-				else if (event.type === "auto_compaction_start") entry.compacting = true;
+				} else if (event.type === "agent_end") {
+					if (!entry.awaitingSessionSettled) entry.running = false;
+				} else if (event.type === "auto_compaction_start") entry.compacting = true;
 				else if (event.type === "auto_compaction_end") entry.compacting = false;
 			}
 			const busy = entry.running || entry.compacting === true;

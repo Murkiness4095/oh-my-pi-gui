@@ -1791,7 +1791,7 @@ let lastWrittenOverlay: Partial<Record<ThemeTokenKey, string>> | null = null;
  */
 function writeOverlay(): void {
 	const merged: Partial<Record<ThemeTokenKey, string>> | null =
-		agentOverrides || pluginOverrides ? { ...(pluginOverrides ?? {}), ...(agentOverrides ?? {}) } : null;
+		agentOverrides || pluginOverrides ? { ...pluginOverrides, ...agentOverrides } : null;
 	const style = document.documentElement.style;
 	if (lastWrittenOverlay) {
 		for (const key of Object.keys(lastWrittenOverlay) as ThemeTokenKey[]) {
@@ -1915,7 +1915,7 @@ export async function refreshPluginThemes(): Promise<void> {
 		if (res.success) {
 			const data = res.data as { themes?: Array<{ tokens: Record<string, string> }> } | undefined;
 			for (const theme of data?.themes ?? []) {
-				merged = { ...(merged ?? {}), ...theme.tokens };
+				merged = Object.assign(merged ?? {}, theme.tokens);
 			}
 		} else {
 			// Backend refused (sidecar starting, transient read error): keep the

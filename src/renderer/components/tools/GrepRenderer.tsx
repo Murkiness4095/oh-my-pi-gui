@@ -65,7 +65,7 @@ function parseDisplayGroups(text: string, fallbackFile: string | undefined): Fil
 			if (rest.endsWith("/")) {
 				// Directory header: record the folded prefix for nested files.
 				const name = rest.slice(0, -1).replace(HEADER_SUFFIX_RE, "");
-				for (const key of [...dirAtDepth.keys()]) {
+				for (const key of dirAtDepth.keys()) {
 					if (key >= depth) dirAtDepth.delete(key);
 				}
 				dirAtDepth.set(depth, joinFolded(parent, name));

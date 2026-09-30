@@ -24,6 +24,7 @@ import type {
 	RpcReadyFrame,
 	RpcResponse,
 	SessionInfoUpdateFrame,
+	SessionSettledFrame,
 	SidecarRestartProgress,
 	SidecarStatus,
 	SidecarStatusPayload,
@@ -197,6 +198,7 @@ export interface SidecarEvents {
 	liveUpdate: (frame: RpcLiveUpdateFrame) => void;
 	modelCatalogUpdate: (frame: ModelCatalogUpdateFrame) => void;
 	commandsUpdate: (commands: unknown[]) => void;
+	sessionSettled: (frame: SessionSettledFrame) => void;
 	frame: (frame: OutboundFrame) => void;
 }
 
@@ -457,6 +459,11 @@ export class SidecarManager extends EventEmitter {
 			this.emit("frame", obj);
 			return;
 		}
+		if (obj.type === "session_settled") {
+			this.emit("sessionSettled", obj as unknown as SessionSettledFrame);
+			this.emit("frame", obj);
+			return;
+		}
 		if (obj.type === "command_output") {
 			this.emit("commandOutput", obj as unknown as CommandOutputFrame);
 			this.emit("frame", obj);
@@ -499,18 +506,26 @@ export class SidecarManager extends EventEmitter {
 		// `#cleanup()` rejects the pending command on a generation that is already
 		// gone. Unguarded, that rejection announced "ready" and zeroed the restart
 		// counter, so a broken binary respawned forever behind a healthy UI.
+		// Stay on v1 when an older/malformed sidecar omits the negotiation fields
+		// or advertises limits this decoder cannot safely honor.
 		const generation = this.#generation;
 		const announceReady = (): void => {
 			if (!this.#isLive(generation)) return;
 			this.#setStatus("ready");
 			this.#restartCount = 0;
 		};
-		// Stay on v1 when an older/malformed sidecar omits the negotiation fields
-		// or advertises limits this decoder cannot safely honor.
+		const announceReadyWithEventFilter = (): void => {
+			if (this.#isLive(generation) && this.#rpcClient) {
+				void this.#rpcClient
+					.command({ type: "set_event_filter", events: Object.keys(AGENT_EVENT_TYPES) })
+					.catch(() => {});
+			}
+			announceReady();
+		};
 		if (supportsRpcProtocolV2(ready)) {
 			this.#rpcClient
 				?.command({ type: "negotiate_protocol", protocolVersion: 2 })
-				.then(announceReady, announceReady);
+				.then(announceReadyWithEventFilter, announceReady);
 		} else {
 			announceReady();
 		}

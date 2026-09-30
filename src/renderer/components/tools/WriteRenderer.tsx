@@ -17,7 +17,7 @@ function diffStats(diff: string): { added: number; removed: number } {
 	let removed = 0;
 	let sawHunk = false;
 	for (const line of diff.split("\n")) {
-		if (/^@@/.test(line)) {
+		if (line.startsWith("@@")) {
 			sawHunk = true;
 			continue;
 		}

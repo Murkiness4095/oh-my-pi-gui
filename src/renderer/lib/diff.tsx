@@ -60,7 +60,7 @@ function parseDiffRows(text: string): DiffRow[] {
 			pushGap();
 			continue;
 		}
-		if (/^diff --git /.test(raw) || /^Index: /.test(raw)) {
+		if (raw.startsWith("diff --git ") || raw.startsWith("Index: ")) {
 			sawHunk = false;
 			continue;
 		}

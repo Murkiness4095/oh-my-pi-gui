@@ -256,7 +256,7 @@ function ProviderForm({ editing, existing, directEdit, onBack, onSaved, onCancel
 			models: models
 				.filter(row => row.id.trim().length > 0)
 				.map(row => {
-					const { key, ...modelInput } = row;
+					const { key: _key, ...modelInput } = row;
 					return {
 						...modelInput,
 						id: modelInput.id.trim(),

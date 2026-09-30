@@ -15,6 +15,7 @@ export class EventBatcher {
 	#scheduled = false;
 	#flush: FlushCallback;
 	#disposed = false;
+	#flushTimer: NodeJS.Timeout | null = null;
 
 	constructor(flush: FlushCallback) {
 		this.#flush = flush;
@@ -32,14 +33,17 @@ export class EventBatcher {
 
 		if (!this.#scheduled) {
 			this.#scheduled = true;
-			setTimeout(() => this.#doFlush(), BATCH_INTERVAL_MS);
+			this.#flushTimer = setTimeout(() => this.#doFlush(), BATCH_INTERVAL_MS);
 		}
 	}
 
 	#doFlush(): void {
+		if (this.#flushTimer !== null) {
+			clearTimeout(this.#flushTimer);
+			this.#flushTimer = null;
+		}
 		this.#scheduled = false;
 		if (this.#pending.length === 0 || this.#disposed) return;
-
 		const batch = this.#pending;
 		this.#pending = [];
 		this.#flush(batch);
@@ -54,6 +58,11 @@ export class EventBatcher {
 
 	dispose(): void {
 		this.#disposed = true;
+		if (this.#flushTimer !== null) {
+			clearTimeout(this.#flushTimer);
+			this.#flushTimer = null;
+		}
+		this.#scheduled = false;
 		this.#pending = [];
 	}
 }
