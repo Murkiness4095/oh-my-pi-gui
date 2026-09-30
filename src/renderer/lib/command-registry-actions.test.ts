@@ -34,6 +34,7 @@ const baseCtx: CommandRegistryContext = {
 	openCommandPalette: () => {},
 	openModelRoles: () => {},
 	openStatsDashboard: () => {},
+	openFeedback: () => {},
 	openRenameDialog: () => {},
 	openSessionPicker: () => {},
 	openBranchPicker: () => {},

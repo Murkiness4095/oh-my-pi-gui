@@ -144,6 +144,7 @@ export function CommandPalette() {
 	const openProviders = useUiStore(state => state.openProviders);
 	const openModelRoles = useUiStore(state => state.openModelRoles);
 	const openStatsDashboard = useUiStore(state => state.openStatsDashboard);
+	const openFeedback = useUiStore(state => state.openFeedback);
 	const openRenameDialog = useUiStore(state => state.openRenameDialog);
 	const openSessionPicker = useUiStore(state => state.openSessionPicker);
 	const openBranchPicker = useUiStore(state => state.openBranchPicker);
@@ -309,6 +310,7 @@ export function CommandPalette() {
 				openProviders,
 				openModelRoles,
 				openStatsDashboard,
+				openFeedback,
 				openRenameDialog,
 				openSessionPicker,
 				openBranchPicker,
@@ -370,6 +372,7 @@ export function CommandPalette() {
 			openProviders,
 			openModelRoles,
 			openStatsDashboard,
+			openFeedback,
 			openRenameDialog,
 			openSessionPicker,
 			openBranchPicker,

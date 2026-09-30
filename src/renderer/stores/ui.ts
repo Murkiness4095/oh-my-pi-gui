@@ -137,6 +137,11 @@ interface UiStore {
 	closeModelRoles: () => void;
 	openStatsDashboard: () => void;
 	closeStatsDashboard: () => void;
+	feedbackOpen: boolean;
+	/** Error text carried in from a crash/error surface; shown read-only in the dialog. */
+	feedbackPrefill: { error?: string; title?: string; description?: string } | null;
+	openFeedback: (prefill?: { error?: string; title?: string; description?: string } | null) => void;
+	closeFeedback: () => void;
 	openModelCompare: () => void;
 	closeModelCompare: () => void;
 	openBenchmark: () => void;
@@ -300,6 +305,10 @@ export const useUiStore = create<UiStore>()((set, get) => ({
 	statsDashboardOpen: false,
 	openStatsDashboard: () => set({ statsDashboardOpen: true }),
 	closeStatsDashboard: () => set({ statsDashboardOpen: false }),
+	feedbackOpen: false,
+	feedbackPrefill: null,
+	openFeedback: prefill => set({ feedbackOpen: true, feedbackPrefill: prefill ?? null }),
+	closeFeedback: () => set({ feedbackOpen: false, feedbackPrefill: null }),
 	modelCompareOpen: false,
 	openModelCompare: () => set({ modelCompareOpen: true }),
 	closeModelCompare: () => set({ modelCompareOpen: false }),

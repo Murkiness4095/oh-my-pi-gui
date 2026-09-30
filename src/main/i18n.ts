@@ -40,6 +40,7 @@ type MainTextKey =
 	| "menu.openProject"
 	| "menu.prCenter"
 	| "menu.providers"
+	| "menu.reportIssue"
 	| "menu.session"
 	| "menu.sessionInfo"
 	| "menu.shareSession"
@@ -103,6 +104,7 @@ const TEXT: Record<MainTextKey, Record<MainLanguage, string>> = {
 	"menu.openProject": { en: "Open Project…", zh: "打开项目…" },
 	"menu.prCenter": { en: "PR Center", zh: "PR 中心" },
 	"menu.providers": { en: "Providers & Login", zh: "提供商与登录" },
+	"menu.reportIssue": { en: "Report an Issue…", zh: "反馈问题…" },
 	"menu.session": { en: "Session", zh: "会话" },
 	"menu.sessionInfo": { en: "Session Info", zh: "会话信息" },
 	"menu.shareSession": { en: "Share Session", zh: "分享会话" },

@@ -98,6 +98,7 @@ export const IPC_COMMANDS = {
 	RUNTIME_ERROR_REPORT: "runtime:error-report",
 	/** Absolute path to the main-process crash log */
 	RUNTIME_LOG_PATH: "runtime:log-path",
+	RUNTIME_LOG_TAIL: "runtime:log-tail",
 	LOG_SNAPSHOT: "log:snapshot",
 	/** Quit the app through the main-process guard, which confirms while sessions work. */
 	APP_QUIT: "app:quit",
@@ -127,6 +128,7 @@ export const IPC_COMMANDS = {
 	BENCH_RUN: "bench:run",
 	BENCH_ABORT: "bench:abort",
 	/** Open external URL */
+	SYSTEM_INFO: "system:info",
 	SYSTEM_OPEN_EXTERNAL: "system:open-external",
 	/** Open a file path in the system editor (relative resolves against the workspace) */
 	SYSTEM_OPEN_PATH: "system:open-path",
@@ -263,6 +265,7 @@ export type MenuAction =
 	| "open-context-report"
 	| "open-jobs"
 	| "open-stats"
+	| "open-feedback"
 	| "open-hotkeys"
 	| "open-session-info"
 	| "open-share-session"
@@ -860,12 +863,25 @@ export interface LogBatch {
 	nextSequence: number;
 }
 
+/** Versions/environment the feedback dialog attaches to bug reports. */
+export interface SystemInfo {
+	appVersion: string;
+	platform: string;
+	arch: string;
+	osRelease: string;
+	electron: string;
+	chrome: string;
+	node: string;
+}
+
 export interface OmpApi {
 	runtime: {
 		/** Best-effort fire-and-forget reporting so fatal render paths never wait on IPC. */
 		report(error: RuntimeErrorReport): void;
 		logPath(): Promise<string>;
 		logSnapshot(): Promise<LogBatch>;
+		/** Last `maxLines` runtime-error lines for the feedback dialog's opt-in diagnostics. */
+		logTail(maxLines: number): Promise<string[]>;
 	};
 	app: {
 		/**
@@ -1174,6 +1190,7 @@ export interface OmpApi {
 		abort(): Promise<boolean>;
 	};
 	system: {
+		info(): Promise<SystemInfo>;
 		openExternal(url: string): Promise<void>;
 		/** Open a file in the system editor; relative paths resolve against the workspace. */
 		openPath(path: string): Promise<IpcOpenPathResult>;

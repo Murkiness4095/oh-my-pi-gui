@@ -33,6 +33,7 @@ import type {
 	RunProgressState,
 	RuntimeErrorReport,
 	SessionInfo,
+	SystemInfo,
 	TrayState,
 	UpdateStatus,
 } from "../shared/ipc-types";
@@ -107,6 +108,7 @@ const api: OmpApi = {
 		report: (error: RuntimeErrorReport) => ipcRenderer.send(IPC_COMMANDS.RUNTIME_ERROR_REPORT, error),
 		logPath: () => ipcRenderer.invoke(IPC_COMMANDS.RUNTIME_LOG_PATH) as Promise<string>,
 		logSnapshot: () => ipcRenderer.invoke(IPC_COMMANDS.LOG_SNAPSHOT) as Promise<LogBatch>,
+		logTail: (maxLines: number) => ipcRenderer.invoke(IPC_COMMANDS.RUNTIME_LOG_TAIL, maxLines) as Promise<string[]>,
 	},
 	// Fire-and-forget: the guard may show a modal, and the renderer has nothing
 	// to learn from the outcome.
@@ -263,6 +265,7 @@ const api: OmpApi = {
 	},
 
 	system: {
+		info: () => ipcRenderer.invoke(IPC_COMMANDS.SYSTEM_INFO) as Promise<SystemInfo>,
 		openExternal: (url: string) => ipcRenderer.invoke(IPC_COMMANDS.SYSTEM_OPEN_EXTERNAL, url),
 		openPath: (path: string) => ipcRenderer.invoke(IPC_COMMANDS.SYSTEM_OPEN_PATH, path) as Promise<IpcOpenPathResult>,
 		showSaveDialog: (defaultPath?: string, filters?: { name: string; extensions: string[] }[]) =>

@@ -58,6 +58,8 @@ export const en: Record<string, string> = {
 	"titlebar.stats": "Session stats",
 	"titlebar.workspace": "Open workspace",
 	"titlebar.hotkeys": "Keyboard shortcuts",
+	"titlebar.feedback": "Feedback",
+	"titlebar.feedbackHint": "Report a bug or suggest a feature on GitHub",
 	"titlebar.settings": "Settings",
 	"titlebar.plan": "PLAN",
 	"titlebar.planMode": "Plan mode is on — the agent plans before executing",
@@ -400,6 +402,7 @@ export const en: Record<string, string> = {
 	"appError.description": "The error was saved to the runtime log. Reload the interface to continue.",
 	"appError.logPath": "Runtime log: {path}",
 	"appError.reload": "Reload interface",
+	"appError.report": "Report on GitHub",
 
 	// Deep links (omp:// protocol)
 	"deepLink.notFound": "No saved session matches this link.",
@@ -651,6 +654,8 @@ export const en: Record<string, string> = {
 	"cmd.settings.desc": "Open settings",
 	"cmd.stats": "Stats Dashboard",
 	"cmd.stats.desc": "Launch local stats dashboard",
+	"cmd.feedback": "Send Feedback",
+	"cmd.feedback.desc": "Report a bug or suggest a feature on GitHub",
 	"cmd.jobs": "Background Jobs",
 	"cmd.jobs.desc": "Show async background jobs",
 	"cmd.changelog": "Changelog",
@@ -2182,6 +2187,29 @@ export const en: Record<string, string> = {
 	"stats.errors.noMessage": "(no message)",
 
 	// Stats frustration route
+	// Feedback dialog
+	"feedback.title": "Send Feedback",
+	"feedback.intro":
+		"Describe what happened in as much detail as you can — what you did, what you expected, and what you saw instead. No conversation content is included.",
+	"feedback.kind": "Type",
+	"feedback.kind.bug": "Bug",
+	"feedback.kind.feature": "Feature request",
+	"feedback.kind.question": "Question",
+	"feedback.summary": "Title",
+	"feedback.summaryPlaceholder": "Short summary (optional — derived from the description if empty)",
+	"feedback.capturedError": "Captured error",
+	"feedback.description": "What happened?",
+	"feedback.descriptionPlaceholder": "Steps to reproduce, what you expected, and what actually happened…",
+	"feedback.includeEnv": "Include environment info",
+	"feedback.envLine": "omp GUI v{version} · {platform} {arch} · Electron {electron}",
+	"feedback.includeErrors": "Include recent error log (application errors only — never conversation content)",
+	"feedback.errorsPreview": "Preview the {count} lines that would be attached",
+	"feedback.errorsEmpty": "(no errors recorded)",
+	"feedback.note":
+		"Submitting opens a prefilled GitHub issue in your browser — review it there and post with your GitHub account. Nothing leaves the app before that.",
+	"feedback.cancel": "Cancel",
+	"feedback.submit": "Continue on GitHub",
+
 	"stats.frustration.annoyed": "Annoyed",
 	"stats.frustration.atAssistant": "At the assistant",
 	"stats.frustration.angry": "Angry",

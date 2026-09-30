@@ -62,6 +62,7 @@ import type { Revive } from "./stats-restart-policy";
 import { spawnTabForWindow } from "./tab-spawn";
 import { setTrayState } from "./tray";
 import { aggregateTrayStatus } from "./tray-labels";
+import { appVersion } from "./updater";
 import type { SpawnWindow, WindowManager } from "./window";
 
 export interface IpcDeps {
@@ -394,6 +395,24 @@ export function registerIpcHandlers(deps: IpcDeps): void {
 	});
 
 	ipcMain.handle(IPC_COMMANDS.RUNTIME_LOG_PATH, () => runtimeLogPath());
+	// Feedback dialog: last few runtime-error lines for the opt-in diagnostics
+	// block. Tail-read so a large log doesn't have to be parsed end to end.
+	ipcMain.handle(IPC_COMMANDS.RUNTIME_LOG_TAIL, async (_event, maxLines: unknown) => {
+		const limit = typeof maxLines === "number" && maxLines > 0 ? Math.min(Math.floor(maxLines), 50) : 20;
+		try {
+			const stat = await fsp.stat(runtimeLogPath());
+			const fd = await fsp.open(runtimeLogPath(), "r");
+			try {
+				const size = Math.min(stat.size, 256 * 1024);
+				const { buffer } = await fd.read(Buffer.alloc(size), 0, size, stat.size - size);
+				return buffer.toString("utf8").split("\n").filter(Boolean).slice(-limit);
+			} finally {
+				await fd.close();
+			}
+		} catch {
+			return [];
+		}
+	});
 	ipcMain.handle(IPC_COMMANDS.LOG_SNAPSHOT, () => logWatcher.getSnapshot());
 
 	// RPC command passthrough — always returns a response, never throws.
@@ -761,6 +780,15 @@ export function registerIpcHandlers(deps: IpcDeps): void {
 	});
 
 	// System
+	ipcMain.handle(IPC_COMMANDS.SYSTEM_INFO, () => ({
+		appVersion: appVersion(),
+		platform: process.platform,
+		arch: process.arch,
+		osRelease: os.release(),
+		electron: process.versions.electron ?? "?",
+		chrome: process.versions.chrome ?? "?",
+		node: process.versions.node ?? "?",
+	}));
 	ipcMain.handle(IPC_COMMANDS.SYSTEM_OPEN_EXTERNAL, async (_event, url: string) => {
 		if (typeof url === "string" && (url.startsWith("https://") || url.startsWith("http://"))) {
 			await shell.openExternal(url);

@@ -90,6 +90,9 @@ const SettingsWindow = lazy(() =>
 const StatsDashboard = lazy(() =>
 	import("./components/stats/StatsDashboard").then(m => ({ default: m.StatsDashboard })),
 );
+const FeedbackDialog = lazy(() =>
+	import("./components/dialogs/FeedbackDialog").then(m => ({ default: m.FeedbackDialog })),
+);
 const ModelCompare = lazy(() => import("./components/settings/ModelCompare").then(m => ({ default: m.ModelCompare })));
 const BenchmarkDialog = lazy(() =>
 	import("./components/dialogs/BenchmarkDialog").then(m => ({ default: m.BenchmarkDialog })),
@@ -171,6 +174,7 @@ export function App() {
 	const followAgentTheme = useUiStore(s => s.followAgentTheme);
 	const statsDashboardOpen = useUiStore(s => s.statsDashboardOpen);
 	const closeStatsDashboard = useUiStore(s => s.closeStatsDashboard);
+	const feedbackOpen = useUiStore(s => s.feedbackOpen);
 	const modelCompareOpen = useUiStore(s => s.modelCompareOpen);
 	const closeModelCompare = useUiStore(s => s.closeModelCompare);
 	const benchmarkOpen = useUiStore(s => s.benchmarkOpen);
@@ -618,6 +622,10 @@ export function App() {
 				ui.openStatsDashboard();
 				return;
 			}
+			if (action === "open-feedback") {
+				ui.openFeedback();
+				return;
+			}
 			if (action === "open-hotkeys") {
 				ui.openHotkeys();
 				return;
@@ -781,6 +789,7 @@ export function App() {
 			{composerEditorOpen && <ComposerEditorDialog />}
 			<Suspense fallback={null}>
 				<StatsDashboard open={statsDashboardOpen} onClose={closeStatsDashboard} />
+				{feedbackOpen && <FeedbackDialog />}
 			</Suspense>
 			<ToastStack />
 		</div>

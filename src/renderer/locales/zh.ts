@@ -55,6 +55,8 @@ export const zh: Record<string, string> = {
 	"titlebar.stats": "会话统计",
 	"titlebar.workspace": "打开工作区",
 	"titlebar.hotkeys": "键盘快捷键",
+	"titlebar.feedback": "反馈",
+	"titlebar.feedbackHint": "在 GitHub 上反馈 Bug 或功能建议",
 	"titlebar.settings": "设置",
 	"titlebar.plan": "计划",
 	"titlebar.planMode": "计划模式已开启——Agent 先规划再执行",
@@ -392,6 +394,7 @@ export const zh: Record<string, string> = {
 	"appError.description": "错误已写入运行时日志。重新加载界面后可继续使用。",
 	"appError.logPath": "运行时日志：{path}",
 	"appError.reload": "重新加载界面",
+	"appError.report": "到 GitHub 反馈",
 
 	// 深链接（omp:// 协议）
 	"deepLink.notFound": "没有与此链接匹配的已保存会话。",
@@ -643,6 +646,8 @@ export const zh: Record<string, string> = {
 	"cmd.settings.desc": "打开设置",
 	"cmd.stats": "统计仪表板",
 	"cmd.stats.desc": "启动本地统计仪表板",
+	"cmd.feedback": "提交反馈",
+	"cmd.feedback.desc": "在 GitHub 上反馈 Bug 或功能建议",
 	"cmd.jobs": "后台任务",
 	"cmd.jobs.desc": "显示异步后台任务",
 	"cmd.changelog": "更新日志",
@@ -2137,6 +2142,28 @@ export const zh: Record<string, string> = {
 	"stats.errors.noMessage": "（无信息）",
 
 	// Stats frustration route
+	// Feedback dialog
+	"feedback.title": "提交反馈",
+	"feedback.intro": "请尽量详细地描述情况：你做了什么、期望的结果、实际看到的现象。不会包含任何会话内容。",
+	"feedback.kind": "类型",
+	"feedback.kind.bug": "Bug",
+	"feedback.kind.feature": "功能建议",
+	"feedback.kind.question": "问题咨询",
+	"feedback.summary": "标题",
+	"feedback.summaryPlaceholder": "简短概括（可选，留空则取描述首行）",
+	"feedback.capturedError": "捕获的错误",
+	"feedback.description": "发生了什么？",
+	"feedback.descriptionPlaceholder": "复现步骤、期望的结果、实际发生的情况…",
+	"feedback.includeEnv": "附带环境信息",
+	"feedback.envLine": "omp GUI v{version} · {platform} {arch} · Electron {electron}",
+	"feedback.includeErrors": "附带最近的错误日志（仅应用错误，不含会话内容）",
+	"feedback.errorsPreview": "预览将附带的 {count} 行内容",
+	"feedback.errorsEmpty": "（暂无错误记录）",
+	"feedback.note":
+		"点击提交后会在浏览器中打开预填好的 GitHub issue 页面，确认后使用你的 GitHub 账号发布。在此之前不会有任何内容离开应用。",
+	"feedback.cancel": "取消",
+	"feedback.submit": "在 GitHub 上继续",
+
 	"stats.frustration.annoyed": "不满",
 	"stats.frustration.atAssistant": "针对助手",
 	"stats.frustration.angry": "愤怒",

@@ -14,6 +14,7 @@ import {
 	Keyboard,
 	MessageCircle,
 	MessageSquarePlus,
+	MessageSquareWarning,
 	MoreHorizontal,
 	Palette,
 	PanelRight,
@@ -652,6 +653,13 @@ export function Sidebar() {
 									icon: Keyboard,
 									label: t("titlebar.hotkeys"),
 									onClick: () => useUiStore.getState().openHotkeys(),
+								},
+								{
+									id: "feedback",
+									icon: MessageSquareWarning,
+									label: t("titlebar.feedback"),
+									title: t("titlebar.feedbackHint"),
+									onClick: () => useUiStore.getState().openFeedback(),
 								},
 								{
 									id: "settings",

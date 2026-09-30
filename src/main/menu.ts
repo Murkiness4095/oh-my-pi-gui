@@ -294,6 +294,10 @@ export function createMenu(windowManager: WindowManager, spawnWindow: SpawnWindo
 					click: () => app.showAboutPanel(),
 				},
 				{
+					label: mainT("menu.reportIssue", language),
+					click: () => sendMenuAction(windowManager, spawnWindow, "open-feedback"),
+				},
+				{
 					label: mainT("menu.documentation", language),
 					click: () => void shell.openExternal("https://github.com/nornzach/oh-my-pi-gui"),
 				},

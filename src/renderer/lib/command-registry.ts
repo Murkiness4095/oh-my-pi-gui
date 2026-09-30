@@ -112,6 +112,7 @@ export interface CommandRegistryContext {
 	openCommandPalette: () => void;
 	openModelRoles: () => void;
 	openStatsDashboard: () => void;
+	openFeedback: () => void;
 	openRenameDialog: () => void;
 	openSessionPicker: () => void;
 	openBranchPicker: () => void;
@@ -1265,6 +1266,13 @@ export function buildCommandMenu(ctx: CommandRegistryContext): CommandMenuItem[]
 		affordance: { kind: "window", open: ctx.openStatsDashboard },
 	});
 	add({
+		name: "feedback",
+		label: t("cmd.feedback"),
+		description: t("cmd.feedback.desc"),
+		category: "view",
+		affordance: { kind: "window", open: ctx.openFeedback },
+	});
+	add({
 		name: "jobs",
 		label: t("cmd.jobs"),
 		description: t("cmd.jobs.desc"),
@@ -1742,6 +1750,7 @@ export function buildCurrentCommandMenu(availableCommands: AvailableCommand[]): 
 		openCommandPalette: ui.openCommandPalette,
 		openModelRoles: ui.openModelRoles,
 		openStatsDashboard: ui.openStatsDashboard,
+		openFeedback: ui.openFeedback,
 		openRenameDialog: ui.openRenameDialog,
 		openSessionPicker: ui.openSessionPicker,
 		openBranchPicker: ui.openBranchPicker,
