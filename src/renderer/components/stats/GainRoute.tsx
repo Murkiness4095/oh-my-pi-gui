@@ -7,34 +7,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import { baseChartOptions, chartTheme, compact } from "../../lib/chart";
 import "../../lib/chart";
+import type { GainData } from "../../../shared/stats-types";
 import { useStats } from "../../hooks/use-stats";
 import { formatPercent } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import type { StatsRange } from "./StatsDashboard";
 import { ChartBox, MetricCard, RouteFrame, SectionTitle } from "./shared";
-
-interface SourceTotals {
-	savedTokens: number;
-	savedBytes: number;
-	hits: number;
-	outputBytes: number;
-	originalBytes: number;
-	reductionPercent: number | null;
-}
-
-interface GainPoint {
-	date: string;
-	snapcompact: number;
-	total: number;
-}
-
-interface GainData {
-	overall: SourceTotals;
-	bySource: Record<string, SourceTotals>;
-	timeSeries: GainPoint[];
-	project: string | null;
-	projects: string[];
-}
 
 export function GainRoute({ range, refreshKey }: { range: StatsRange; refreshKey: number }) {
 	const t = useT();

@@ -7,64 +7,28 @@ import { useEffect, useMemo } from "react";
 import { Bar, Pie } from "react-chartjs-2";
 import { baseChartOptions, CHART_COLORS, compact, formatUsd } from "../../lib/chart";
 import "../../lib/chart";
+import type { ProviderRow, ProvidersData, ProviderWindowsData, WindowInsight } from "../../../shared/stats-types";
 import { useStats } from "../../hooks/use-stats";
 import { useT } from "../../lib/i18n";
 import type { StatsRange } from "./StatsDashboard";
 import { ChartBox, RouteFrame, SectionTitle, type StatColumn, StatTable } from "./shared";
 
-interface ProviderRow {
-	provider: string;
-	totalRequests: number;
-	failedRequests: number;
-	models: number;
-	totalInputTokens: number;
-	totalOutputTokens: number;
-	totalCacheReadTokens: number;
-	totalCacheWriteTokens: number;
-	totalTokens: number;
-	totalCost: number;
-	avgTokensPerSecond: number | null;
-}
-
-interface HourlyPoint {
-	provider: string;
-	hour: number;
-	totalTokens: number;
-	outputTokens: number;
-	requests: number;
-}
-
-interface WindowInsight {
-	provider: string;
-	windowKey: string;
-	windowLabel: string;
-	accounts: number;
-	cycles: number;
-	fractionConsumed: number;
-	estTokensPerWindow: number | null;
-	peakConcurrentFraction: number;
-	idealAccounts: number;
-	exhaustedEvents: number;
-}
-
-interface ProvidersData {
-	providers: ProviderRow[];
-	hourly: HourlyPoint[];
-	series: unknown[];
-	usageSeries: unknown[];
-	windowInsights: WindowInsight[];
-}
-
 export function ProvidersRoute({ range, refreshKey }: { range: StatsRange; refreshKey: number }) {
 	const t = useT();
 	const params = useMemo(() => ({ range }), [range]);
 	const { data, isLoading, error, refetch } = useStats<ProvidersData>("/api/stats/providers", params);
+	const windows = useStats<ProviderWindowsData>("/api/stats/provider-windows", params);
+	const refetchWindows = windows.refetch;
 
 	useEffect(() => {
-		if (refreshKey > 0) refetch();
-	}, [refreshKey, refetch]);
+		if (refreshKey > 0) {
+			refetch();
+			refetchWindows();
+		}
+	}, [refreshKey, refetch, refetchWindows]);
 
 	const stats = data;
+	const windowInsights = windows.data?.windowInsights ?? [];
 
 	const columns: StatColumn<ProviderRow>[] = useMemo(
 		() => [
@@ -215,13 +179,13 @@ export function ProvidersRoute({ range, refreshKey }: { range: StatsRange; refre
 			</div>
 			<SectionTitle>{t("stats.providers")}</SectionTitle>
 			<StatTable columns={columns} keyFor={row => row.provider} rows={providers} />
-			{(stats?.windowInsights ?? []).length > 0 && (
+			{windowInsights.length > 0 && (
 				<>
 					<SectionTitle>{t("stats.providers.windows")}</SectionTitle>
 					<StatTable
 						columns={insightColumns}
 						keyFor={row => `${row.provider}/${row.windowKey}`}
-						rows={stats?.windowInsights ?? []}
+						rows={windowInsights}
 					/>
 				</>
 			)}

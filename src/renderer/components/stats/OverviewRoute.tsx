@@ -7,48 +7,11 @@ import { useEffect, useMemo } from "react";
 import { Line } from "react-chartjs-2";
 import { baseChartOptions, bucketLabels, chartTheme, compact, formatMs, formatUsd } from "../../lib/chart";
 import "../../lib/chart";
+import type { AgentTypeRow, OverviewData } from "../../../shared/stats-types";
 import { useStats } from "../../hooks/use-stats";
 import { useT } from "../../lib/i18n";
 import type { StatsRange } from "./StatsDashboard";
 import { ChartBox, MetricCard, RouteFrame, SectionTitle, type StatColumn, StatTable } from "./shared";
-
-interface TimePoint {
-	timestamp: number;
-	requests: number;
-	errors: number;
-	tokens: number;
-	cost: number;
-}
-
-interface AgentTypeRow {
-	agentType: string;
-	totalRequests: number;
-	totalInputTokens: number;
-	totalOutputTokens: number;
-	totalCacheReadTokens: number;
-	totalCacheWriteTokens: number;
-	totalCost: number;
-}
-
-interface OverviewData {
-	overall: {
-		totalRequests: number;
-		successfulRequests: number;
-		failedRequests: number;
-		errorRate: number;
-		totalInputTokens: number;
-		totalOutputTokens: number;
-		totalCacheReadTokens: number;
-		totalCacheWriteTokens: number;
-		cacheRate: number;
-		totalCost: number;
-		avgDuration: number | null;
-		avgTtft: number | null;
-		avgTokensPerSecond: number | null;
-	};
-	byAgentType: AgentTypeRow[];
-	timeSeries: TimePoint[];
-}
 
 export function OverviewRoute({ range, refreshKey }: { range: StatsRange; refreshKey: number }) {
 	const t = useT();

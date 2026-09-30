@@ -7,11 +7,12 @@
 import { RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useT } from "../../lib/i18n";
+import { runStatsSync } from "../../lib/stats-sync";
 import { toast } from "../../stores/toast";
 import { Button, Modal } from "../common";
-import { BehaviorRoute } from "./BehaviorRoute";
 import { CostsRoute } from "./CostsRoute";
 import { ErrorsRoute } from "./ErrorsRoute";
+import { FrustrationRoute } from "./FrustrationRoute";
 import { GainRoute } from "./GainRoute";
 import { ModelsRoute } from "./ModelsRoute";
 import { OverviewRoute } from "./OverviewRoute";
@@ -30,7 +31,7 @@ const ROUTES = [
 	{ id: "tools", labelKey: "stats.tools" },
 	{ id: "costs", labelKey: "stats.costs" },
 	{ id: "errors", labelKey: "stats.errors" },
-	{ id: "behavior", labelKey: "stats.behavior" },
+	{ id: "frustration", labelKey: "stats.frustration" },
 	{ id: "gain", labelKey: "stats.gain" },
 	{ id: "projects", labelKey: "stats.projects" },
 	{ id: "requests", labelKey: "stats.requests" },
@@ -49,38 +50,33 @@ export function StatsDashboard({ open, onClose }: { open: boolean; onClose: () =
 		async (opts?: { quiet?: boolean }) => {
 			setSyncing(true);
 			try {
-				const result = (await window.omp.stats.fetch("/api/sync")) as {
-					processed?: number;
-					files?: number;
-					error?: string;
-					unavailable?: boolean;
-				} | null;
-				// The stats:fetch bridge RESOLVES failures as {error, unavailable:true}
-				// instead of rejecting — surface that shape as the failure it is.
-				if (result != null && ("unavailable" in result || result.error)) {
+				const outcome = await runStatsSync(path => window.omp.stats.fetch(path));
+				if (outcome.kind === "unavailable") {
 					// Server still booting: the routes show a loading state and recover on
 					// their own, so the quiet auto-sync on open must not alarm the user.
-					if (result.unavailable) {
-						if (!opts?.quiet) {
-							toast({ variant: "warning", title: t("stats.syncFailed"), message: t("stats.starting") });
-						}
-						return;
+					if (!opts?.quiet) {
+						toast({ variant: "warning", title: t("stats.syncFailed"), message: t("stats.starting") });
 					}
+					return;
+				}
+				if (outcome.kind === "error") {
 					toast({
 						variant: "error",
 						title: t("stats.syncFailed"),
-						message: result.error ?? t("stats.unavailable"),
+						message: outcome.message || t("stats.unavailable"),
 					});
 					return;
 				}
 				if (!opts?.quiet) {
-					toast({
-						variant: "success",
-						title: t("stats.syncDone"),
-						message: result
-							? t("stats.syncDetail", { messages: result.processed ?? 0, files: result.files ?? 0 })
-							: t("stats.syncComplete"),
-					});
+					toast(
+						outcome.kind === "done"
+							? {
+									variant: "success",
+									title: t("stats.syncDone"),
+									message: t("stats.syncDetail", { messages: outcome.processed, files: outcome.files }),
+								}
+							: { variant: "info", title: t("stats.sync"), message: t("stats.syncBackground") },
+					);
 				}
 				setRefreshKey(key => key + 1);
 			} catch (error) {
@@ -174,7 +170,7 @@ export function StatsDashboard({ open, onClose }: { open: boolean; onClose: () =
 					{route === "tools" && <ToolsRoute range={range} refreshKey={refreshKey} />}
 					{route === "costs" && <CostsRoute range={range} refreshKey={refreshKey} />}
 					{route === "errors" && <ErrorsRoute range={range} refreshKey={refreshKey} />}
-					{route === "behavior" && <BehaviorRoute range={range} refreshKey={refreshKey} />}
+					{route === "frustration" && <FrustrationRoute range={range} refreshKey={refreshKey} />}
 					{route === "gain" && <GainRoute range={range} refreshKey={refreshKey} />}
 					{route === "projects" && <ProjectsRoute range={range} refreshKey={refreshKey} />}
 					{route === "requests" && <RequestsRoute range={range} refreshKey={refreshKey} />}

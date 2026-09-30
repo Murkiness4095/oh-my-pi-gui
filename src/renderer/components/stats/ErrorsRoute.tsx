@@ -3,25 +3,13 @@
  */
 
 import { useEffect, useMemo } from "react";
+import type { ErrorRow } from "../../../shared/stats-types";
 import { useStatsList } from "../../hooks/use-stats";
 import { compact } from "../../lib/chart";
 import { useT } from "../../lib/i18n";
 import { Badge } from "../common";
 import type { StatsRange } from "./StatsDashboard";
 import { RouteFrame, SectionTitle, type StatColumn, StatTable } from "./shared";
-
-interface ErrorRow {
-	id?: number;
-	entryId?: string;
-	sessionFile: string;
-	folder: string;
-	model: string;
-	provider: string;
-	timestamp: number;
-	stopReason: string;
-	errorMessage: string | null;
-	usage: { totalTokens: number };
-}
 
 export function ErrorsRoute({ range, refreshKey }: { range: StatsRange; refreshKey: number }) {
 	const t = useT();

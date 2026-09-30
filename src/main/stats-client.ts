@@ -6,13 +6,14 @@
 const DEFAULT_PORT = 0;
 const REQUEST_TIMEOUT_MS = 5000;
 
-const VALID_PATHS: Record<string, true> = {
+export const VALID_PATHS: Record<string, true> = {
 	"/api/stats/overview": true,
 	"/api/stats/model-dashboard": true,
 	"/api/stats/costs": true,
-	"/api/stats/behavior": true,
+	"/api/stats/frustration": true,
 	"/api/stats/tools": true,
 	"/api/stats/providers": true,
+	"/api/stats/provider-windows": true,
 	"/api/stats/recent": true,
 	"/api/stats/requests": true,
 	"/api/stats/errors": true,
@@ -21,11 +22,12 @@ const VALID_PATHS: Record<string, true> = {
 	"/api/stats/timeseries": true,
 	"/api/stats/gain": true,
 	"/api/stats": true,
+	"/api/status": true,
 	"/api/sync": true,
 };
 
 /** Endpoints that mutate state — the stats server answers these with 405 on GET. */
-const POST_PATHS: Record<string, true> = {
+export const POST_PATHS: Record<string, true> = {
 	"/api/sync": true,
 };
 

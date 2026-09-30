@@ -5,6 +5,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import type { RequestDetail, RequestPage, RequestRow } from "../../../shared/stats-types";
 import { useStats } from "../../hooks/use-stats";
 import { compact, formatMs, formatUsd } from "../../lib/chart";
 import { useT } from "../../lib/i18n";
@@ -13,41 +14,6 @@ import type { StatsRange } from "./StatsDashboard";
 import { RouteFrame, SectionTitle, type StatColumn, StatTable } from "./shared";
 
 const PAGE_SIZE = 25;
-
-interface RequestRow {
-	id?: number;
-	entryId: string;
-	sessionFile: string;
-	folder: string;
-	model: string;
-	provider: string;
-	api: string;
-	timestamp: number;
-	duration: number | null;
-	ttft: number | null;
-	stopReason: string;
-	errorMessage: string | null;
-	usage: {
-		input: number;
-		output: number;
-		cacheRead: number;
-		cacheWrite: number;
-		totalTokens: number;
-		cost: { total: number };
-	};
-}
-
-interface RequestPage {
-	rows: RequestRow[];
-	total: number;
-	nextCursor: string | null;
-	snapshotAt: number;
-}
-
-interface RequestDetail extends RequestRow {
-	messages: unknown[];
-	output: unknown;
-}
 
 function DetailDrawer({ row, onClose }: { row: RequestRow; onClose: () => void }) {
 	const t = useT();

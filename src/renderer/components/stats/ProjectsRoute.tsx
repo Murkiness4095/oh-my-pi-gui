@@ -3,25 +3,12 @@
  */
 
 import { useEffect, useMemo } from "react";
+import type { FolderRow } from "../../../shared/stats-types";
 import { useStatsList } from "../../hooks/use-stats";
 import { compact, formatUsd } from "../../lib/chart";
 import { useT } from "../../lib/i18n";
 import type { StatsRange } from "./StatsDashboard";
 import { RouteFrame, SectionTitle, type StatColumn, StatTable } from "./shared";
-
-interface FolderRow {
-	folder: string;
-	totalRequests: number;
-	failedRequests: number;
-	errorRate: number;
-	totalInputTokens: number;
-	totalOutputTokens: number;
-	totalCacheReadTokens: number;
-	totalCacheWriteTokens: number;
-	totalCost: number;
-	avgDuration: number | null;
-	avgTokensPerSecond: number | null;
-}
 
 function ShareBar({ fraction }: { fraction: number }) {
 	return (

@@ -6,49 +6,12 @@ import { useEffect, useMemo } from "react";
 import { Bar, Line } from "react-chartjs-2";
 import { baseChartOptions, bucketLabels, CHART_COLORS, compact, formatMs, formatUsd } from "../../lib/chart";
 import "../../lib/chart";
+import type { ModelRow, ModelsData } from "../../../shared/stats-types";
 import { useStats } from "../../hooks/use-stats";
 import { useT } from "../../lib/i18n";
 import type { StatsRange } from "./StatsDashboard";
 import { ChartBox, RouteFrame, SectionTitle, type StatColumn, StatTable } from "./shared";
 
-interface ModelRow {
-	model: string;
-	provider: string;
-	totalRequests: number;
-	failedRequests: number;
-	errorRate: number;
-	totalInputTokens: number;
-	totalOutputTokens: number;
-	totalCacheReadTokens: number;
-	totalCacheWriteTokens: number;
-	cacheRate: number;
-	totalCost: number;
-	avgDuration: number | null;
-	avgTtft: number | null;
-	avgTokensPerSecond: number | null;
-}
-
-interface ModelSeriesPoint {
-	timestamp: number;
-	model: string;
-	provider: string;
-	requests: number;
-}
-
-interface PerformancePoint {
-	timestamp: number;
-	model: string;
-	provider: string;
-	requests: number;
-	avgTtft: number | null;
-	avgTokensPerSecond: number | null;
-}
-
-interface ModelsData {
-	byModel: ModelRow[];
-	modelSeries: ModelSeriesPoint[];
-	modelPerformanceSeries: PerformancePoint[];
-}
 const tokenCountFormatter = new Intl.NumberFormat("en-US");
 
 export function ModelsRoute({ range, refreshKey }: { range: StatsRange; refreshKey: number }) {

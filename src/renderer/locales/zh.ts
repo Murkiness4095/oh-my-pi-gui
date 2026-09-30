@@ -852,7 +852,7 @@ export const zh: Record<string, string> = {
 	"stats.tools": "工具",
 	"stats.costs": "成本",
 	"stats.errors": "错误",
-	"stats.behavior": "行为",
+	"stats.frustration": "挫败感",
 	"stats.gain": "收益",
 	"stats.projects": "项目",
 	"stats.requests": "请求",
@@ -2063,7 +2063,7 @@ export const zh: Record<string, string> = {
 	"stats.retry": "重试",
 	"stats.emptyRange": "该时间范围内没有数据。",
 	"stats.syncDetail": "来自 {files} 个文件的 {messages} 条消息",
-	"stats.syncComplete": "同步完成",
+	"stats.syncBackground": "同步仍在后台进行，页面会随数据到达自动更新。",
 	"stats.col.requests": "请求",
 	"stats.col.tokens": "令牌",
 	"stats.col.inputTokens": "未缓存输入",
@@ -2136,15 +2136,14 @@ export const zh: Record<string, string> = {
 	"stats.errors.col.message": "错误信息",
 	"stats.errors.noMessage": "（无信息）",
 
-	// Stats behavior route
-	"stats.behavior.signal.yelling": "大吼",
-	"stats.behavior.signal.profanity": "粗口",
-	"stats.behavior.signal.anguish": "痛苦",
-	"stats.behavior.signal.negation": "否定",
-	"stats.behavior.signal.repetition": "重复",
-	"stats.behavior.signal.blame": "指责",
-	"stats.behavior.trend": "信号趋势",
-	"stats.behavior.byModel": "按模型",
+	// Stats frustration route
+	"stats.frustration.annoyed": "不满",
+	"stats.frustration.atAssistant": "针对助手",
+	"stats.frustration.angry": "愤怒",
+	"stats.frustration.judged": "已判定",
+	"stats.frustration.judgedNote":
+		"{messages} 条消息中有 {judged} 条已由模型判定，其余按关键词规则分类。可在 `omp stats` 网页仪表盘中运行判定。",
+	"stats.frustration.byModel": "按模型版本",
 
 	// Stats gain route
 	"stats.gain.allProjects": "所有项目",

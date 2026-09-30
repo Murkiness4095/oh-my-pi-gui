@@ -1,5 +1,7 @@
 import * as path from "node:path";
-import { $ } from "bun";
+import { $, Glob } from "bun";
+import { POST_PATHS, VALID_PATHS } from "../src/main/stats-client";
+import { checkStatsRoutes, parseStatsRoutes, rendererStatsPaths } from "./protocol/stats-routes";
 
 const root = path.resolve(import.meta.dir, "../../..");
 if (!(await Bun.file(path.join(root, "packages/coding-agent/src/modes/rpc/rpc-types.ts")).exists())) {
@@ -9,4 +11,17 @@ if (!(await Bun.file(path.join(root, "packages/coding-agent/src/modes/rpc/rpc-ty
 }
 const result =
 	await $`${path.join(root, "node_modules/.bin/tsgo")} -p ${path.join(import.meta.dir, "protocol/tsconfig.json")} --noEmit`.nothrow();
-process.exitCode = result.exitCode;
+
+const rendererDir = path.join(import.meta.dir, "../src/renderer");
+const rendererPaths: string[] = [];
+for await (const file of new Glob("**/*.{ts,tsx}").scan(rendererDir)) {
+	if (/\.test\.tsx?$/.test(file)) continue;
+	rendererPaths.push(...rendererStatsPaths(await Bun.file(path.join(rendererDir, file)).text()));
+}
+const routeErrors = checkStatsRoutes(
+	parseStatsRoutes(await Bun.file(path.join(root, "packages/stats/src/server.ts")).text()),
+	{ validPaths: Object.keys(VALID_PATHS), postPaths: Object.keys(POST_PATHS), rendererPaths },
+);
+for (const error of routeErrors) console.error(`stats contract: ${error}`);
+
+process.exitCode = result.exitCode || (routeErrors.length > 0 ? 1 : 0);

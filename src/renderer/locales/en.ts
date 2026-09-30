@@ -865,7 +865,7 @@ export const en: Record<string, string> = {
 	"stats.tools": "Tools",
 	"stats.costs": "Costs",
 	"stats.errors": "Errors",
-	"stats.behavior": "Behavior",
+	"stats.frustration": "Frustration",
 	"stats.gain": "Gain",
 	"stats.projects": "Projects",
 	"stats.requests": "Requests",
@@ -2108,7 +2108,7 @@ export const en: Record<string, string> = {
 	"stats.retry": "Retry",
 	"stats.emptyRange": "No data in this range.",
 	"stats.syncDetail": "{messages} messages from {files} files",
-	"stats.syncComplete": "Sync complete",
+	"stats.syncBackground": "Sync is still running in the background; pages update as it lands.",
 	"stats.col.requests": "Requests",
 	"stats.col.tokens": "Tokens",
 	"stats.col.inputTokens": "Uncached input",
@@ -2181,15 +2181,14 @@ export const en: Record<string, string> = {
 	"stats.errors.col.message": "Error message",
 	"stats.errors.noMessage": "(no message)",
 
-	// Stats behavior route
-	"stats.behavior.signal.yelling": "Yelling",
-	"stats.behavior.signal.profanity": "Profanity",
-	"stats.behavior.signal.anguish": "Anguish",
-	"stats.behavior.signal.negation": "Negation",
-	"stats.behavior.signal.repetition": "Repetition",
-	"stats.behavior.signal.blame": "Blame",
-	"stats.behavior.trend": "Signal trend",
-	"stats.behavior.byModel": "By model",
+	// Stats frustration route
+	"stats.frustration.annoyed": "Annoyed",
+	"stats.frustration.atAssistant": "At the assistant",
+	"stats.frustration.angry": "Angry",
+	"stats.frustration.judged": "Judged",
+	"stats.frustration.judgedNote":
+		"{judged} of {messages} messages have a model verdict; the rest are classified by keyword rules. Run the judge from the `omp stats` web dashboard.",
+	"stats.frustration.byModel": "By model version",
 
 	// Stats gain route
 	"stats.gain.allProjects": "All projects",
