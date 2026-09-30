@@ -39,7 +39,7 @@ import { useTabsStore } from "../stores/tabs";
 import { useToastStore } from "../stores/toast";
 import { useTodoStore } from "../stores/todo";
 import { useToolsStore } from "../stores/tools";
-import { hydrateSession, useRpcEvents } from "./use-rpc-events";
+import { hydrateSession, hydrateTabSession, useRpcEvents } from "./use-rpc-events";
 
 const { document, window, Event, HTMLElement, Node } = parseHTML("<html><body></body></html>");
 
@@ -1221,6 +1221,27 @@ describe("hydrateSession streaming reconcile (F-HYDRATE)", () => {
 		subagents.resolve(success({ subagents: [] }));
 		goal.resolve(success({ enabled: false }));
 		await hydration;
+	});
+
+	it("hydrates a tab transcript through paginated RPC pages", async () => {
+		const { commandForTab } = installTabRoutedMockOmp();
+		seedReadyTab("t-page");
+		const hydrated: AgentMessage = {
+			role: "assistant",
+			content: [{ type: "text", text: "large-session reply" }],
+			timestamp: 2,
+		};
+		const original = commandForTab.getMockImplementation()!;
+		commandForTab.mockImplementation(async (tabId, command) => {
+			if (command.type === "get_transcript_page") return success({ messages: [hydrated], totalMessages: 1 });
+			if (command.type === "get_transcript") throw new Error("unbounded transcript RPC");
+			return original(tabId, command);
+		});
+
+		await hydrateTabSession("t-page");
+
+		expect(sessionRuntimeStore<MessagesStore>("t-page", "messages")?.getState().messages).toEqual([hydrated]);
+		expect(commandForTab.mock.calls.some(call => call[1]?.type === "get_transcript_page")).toBe(true);
 	});
 
 	it("clears the stale streaming bubble when the hydrated tab has settled", async () => {

@@ -1,3 +1,4 @@
+import { createSessionRpcClient } from "../../shared/rpc-client";
 import type {
 	AgentMessage,
 	ModelInfo,
@@ -224,7 +225,7 @@ export async function hydrateLegacySession(fallbackName?: string, initialState?:
 	const beforeEventVersion = useSessionStore.getState().eventVersion;
 	const core = Promise.allSettled([
 		initialState ? Promise.resolve(initialState) : activeTabCommand({ type: "get_state" }),
-		activeTabCommand({ type: "get_transcript" }),
+		createSessionRpcClient(activeTabCommand).getTranscript(),
 	]);
 	const subagents = useSubagentsStore.getState().refresh({ expect: isCurrent });
 	const secondary = Promise.allSettled([
@@ -305,7 +306,7 @@ export async function hydrateTabSession(tabId: string, fallbackName?: string): P
 
 	const coreResult = Promise.allSettled([
 		runtime.command({ type: "get_state" }),
-		runtime.command({ type: "get_transcript" }),
+		createSessionRpcClient(runtime.command).getTranscript(),
 	]);
 	const subagentsResult = sessionRuntimeStore<SubagentsStore>(tabId, "subagents")
 		?.getState()

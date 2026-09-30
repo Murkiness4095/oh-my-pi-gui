@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Large conversations now restore correctly when switching tabs.
+
 ## [0.9.11] - 2026-09-30
 
 ### Added
