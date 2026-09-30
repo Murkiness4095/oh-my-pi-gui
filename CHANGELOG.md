@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.9.13] - 2026-10-01
+
+### Changed
+
+- Bundled agent rebuilt from upstream `main` (monorepo merge `4e3ed70b`), adding Factory Droid login and fixing role fallback chains and queued prompts during rewind.
+- The stats dashboard's Behavior page is now **Frustration**, matching the redesigned stats API: annoyed / at-the-assistant / angry rates overall and per model version.
+
+### Fixed
+
+- Stats **Sync** no longer fails with `405 Method Not Allowed`, and its toast now reports the finished sync's real message and file counts instead of an instant "0 messages".
+- The Providers page shows the subscription-window table again.
+
 ## [0.9.12] - 2026-09-30
 
 ### Changed
