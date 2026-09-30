@@ -11,6 +11,7 @@
 // nothing, so any post-discovery command exceeding WEDGE_MS means the queue is
 // still bricked. Run: `bun run packages/gui/scripts/smoke-sidecar.mjs`.
 import { spawn } from "node:child_process";
+import { resolve } from "node:path";
 import { createInterface } from "node:readline";
 
 const CLI = new URL("../../coding-agent/src/cli.ts", import.meta.url).pathname;
@@ -22,7 +23,7 @@ const HARD_TIMEOUT_MS = Number(process.env.OMP_SIDECAR_SMOKE_TIMEOUT_MS ?? 40_00
 //   bun run packages/gui/scripts/smoke-sidecar.mjs
 //   bun run packages/gui/scripts/smoke-sidecar.mjs packages/gui/resources/omp
 const exe = process.argv[2];
-const spawnCmd = exe ? new URL(`file://${exe}`).pathname : "bun";
+const spawnCmd = exe ? resolve(exe) : "bun";
 const spawnArgs = exe ? ["--mode", "rpc-ui"] : [CLI, "--mode", "rpc-ui"];
 console.log(`probing: ${spawnCmd} ${spawnArgs.join(" ")}`);
 
