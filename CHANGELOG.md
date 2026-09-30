@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.9.12] - 2026-09-30
+
+### Changed
+
+- Bundled agent rebuilt from upstream `main` beyond omp 18.4.4 (monorepo merge `a8ee6852`), adding model presets, live queue-update events, delta message updates for RPC hosts, and cache-warming controls.
+
 ### Fixed
 
 - Large conversations now restore correctly when switching tabs.
