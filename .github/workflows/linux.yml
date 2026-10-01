@@ -2,8 +2,9 @@ name: Linux AppImage
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/linux-build]
     tags: ["v*"]
+    paths-ignore: ["site/**"]
   pull_request:
   workflow_dispatch:
 
