@@ -1,5 +1,6 @@
 appId: sh.omp.gui
 productName: omp
+executableName: omp
 afterPack: scripts/after-pack.cjs
 directories:
   buildResources: resources

@@ -79,10 +79,10 @@ nsis:
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
 linux:
-  executableName: omp
   icon: resources/icons
   category: Development
   maintainer: Stencil Labs, Inc.
+  artifactName: ${productName}-${version}-${arch}.${ext}
   # arm64 only here — x64 builds go through electron-builder.linux-x64.yml, which
   # points extraResources at resources/omp.linux-x64 instead of
   # resources/omp.linux-arm64. Building x64 from this config would ship the
@@ -96,6 +96,8 @@ linux:
     entry:
       StartupWMClass: omp-gui
 
+deb:
+  packageName: omp-gui
 
 publish:
   provider: github

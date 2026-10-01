@@ -22,10 +22,10 @@ asar: true
 compression: maximum
 
 linux:
-  executableName: omp
   icon: resources/icons
   category: Development
   maintainer: Stencil Labs, Inc.
+  artifactName: ${productName}-${version}-${arch}.${ext}
   target:
     - target: AppImage
       arch: [x64]
@@ -34,6 +34,9 @@ linux:
   desktop:
     entry:
       StartupWMClass: omp-gui
+
+deb:
+  packageName: omp-gui
 
 publish:
   provider: github

@@ -61,6 +61,9 @@ jobs:
         run: ./resources/${{ matrix.sidecar }} --smoke-test
         working-directory: build/monorepo/packages/gui
 
+      - name: Install packaging dependencies
+        run: sudo apt-get update && sudo apt-get install -y libcrypt1
+
       - name: Package AppImage + deb (${{ matrix.arch }})
         run: bun run ${{ matrix.package_script }} -- --publish never
         working-directory: build/monorepo/packages/gui
@@ -70,6 +73,6 @@ jobs:
         with:
           name: omp-linux-${{ matrix.arch }}
           path: |
-            build/monorepo/packages/gui/dist/*.AppImage
-            build/monorepo/packages/gui/dist/*.deb
+            build/monorepo/packages/gui/dist/**/*.AppImage
+            build/monorepo/packages/gui/dist/**/*.deb
           if-no-files-found: error

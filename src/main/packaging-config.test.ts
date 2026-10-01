@@ -19,6 +19,7 @@ interface BuilderConfig {
 	mac?: { extendInfo?: Record<string, unknown> };
 	win?: { target?: { target?: string; arch?: string[] }[] };
 	linux?: { target?: { target?: string; arch?: string[] }[] };
+	deb?: { packageName?: string };
 }
 
 const PACKAGE_ROOT = path.join(__dirname, "..", "..");
@@ -160,6 +161,9 @@ describe("Linux package config", () => {
 				{ target: "AppImage", arch: [arch] },
 				{ target: "deb", arch: [arch] },
 			]);
+			// Scoped package names make fpm write into dist/@scope/..., but fpm does not
+			// create the intermediate directory. Pin a non-scoped deb package name.
+			expect(config.deb?.packageName, `${file} must override deb packageName`).toBe("omp-gui");
 		}
 	});
 });
