@@ -25,6 +25,9 @@ concurrency:
 
 jobs:
   deploy:
+    # The github-pages environment only allows main; runs dispatched from a
+    # feature branch fail on environment protection rules. Skip cleanly instead.
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
