@@ -1,5 +1,6 @@
 appId: sh.omp.gui
 productName: omp
+electronVersion: 35.7.5
 afterPack: scripts/after-pack.cjs
 directories:
   buildResources: resources
