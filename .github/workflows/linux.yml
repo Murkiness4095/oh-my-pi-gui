@@ -1,0 +1,74 @@
+name: Linux AppImage
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-24.04
+            sidecar: omp.linux-x64
+            package_script: package:linux:x64
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            sidecar: omp.linux-arm64
+            package_script: package:linux:arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out monorepo fork (sidecar source)
+        uses: actions/checkout@v4
+        with:
+          repository: nornzach/oh-my-pi
+          path: build/monorepo
+
+      - name: Check out GUI (this repo)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.sha }}
+          path: build/gui
+
+      - name: Nest GUI at packages/gui (build:omp layout contract)
+        run: mkdir -p build/monorepo/packages/gui && cp -r build/gui/. build/monorepo/packages/gui/ && rm -rf build/gui
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install monorepo dependencies
+        run: bun install
+        working-directory: build/monorepo
+
+      - name: Install GUI dependencies
+        run: bun install
+        working-directory: build/monorepo/packages/gui
+
+      - name: Build Linux sidecar (${{ matrix.arch }})
+        run: bun run ${{ matrix.arch == 'x64' && 'build:omp:linux:x64' || 'build:omp:linux' }}
+        working-directory: build/monorepo/packages/gui
+
+      - name: Smoke-test sidecar
+        run: ./resources/${{ matrix.sidecar }} --smoke-test
+        working-directory: build/monorepo/packages/gui
+
+      - name: Package AppImage + deb (${{ matrix.arch }})
+        run: bun run ${{ matrix.package_script }} -- --publish never
+        working-directory: build/monorepo/packages/gui
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: omp-linux-${{ matrix.arch }}
+          path: |
+            build/monorepo/packages/gui/dist/*.AppImage
+            build/monorepo/packages/gui/dist/*.deb
+          if-no-files-found: error

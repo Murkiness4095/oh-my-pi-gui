@@ -103,14 +103,18 @@ git push origin main && git push origin vX.Y.Z
 
 Both checkouts must be clean before any artifact is produced.
 
-### Phase 4 — Sidecars (all three, every release)
+### Phase 4 — Sidecars (all five, every release)
 
 ```bash
-bun run build:omp          # → resources/omp     (darwin-arm64)
-bun run build:omp:x64      # → resources/omp.x64 (darwin-x64)
-bun run build:omp:win      # → resources/omp.exe (windows-x64)
+bun run build:omp          # → resources/omp             (darwin-arm64)
+bun run build:omp:x64      # → resources/omp.x64         (darwin-x64)
+bun run build:omp:win      # → resources/omp.exe         (windows-x64)
+bun run build:omp:linux    # → resources/omp.linux-arm64 (linux-arm64)
+bun run build:omp:linux:x64 # → resources/omp.linux-x64   (linux-x64)
 file resources/omp resources/omp.x64            # confirm each architecture
 bun scripts/smoke-sidecar.mjs resources/omp     # + .x64 on an Intel host, .exe on Windows
+./resources/omp.linux-x64 --smoke-test          # on a Linux x64 host (CI does this per arch)
+./resources/omp.linux-arm64 --smoke-test        # on a Linux arm64 host (CI does this per arch)
 ```
 
 Cross-compilation is not runtime verification — smoke-test each binary on a compatible host.
@@ -121,6 +125,8 @@ Cross-compilation is not runtime verification — smoke-test each binary on a co
 bun run package:mac:arm64 -- --publish never
 bun run package:mac:x64   -- --publish never   # dedicated x64 config — never plain package:mac
 bun run package:win       -- --publish never
+bun run package:linux:arm64 -- --publish never # dedicated arm64 config is the default file
+bun run package:linux:x64   -- --publish never # dedicated x64 config — never plain package:linux for x64
 ```
 
 Inspect every artifact before publishing:
@@ -129,6 +135,7 @@ Inspect every artifact before publishing:
 - `file "<path>/omp.app/Contents/Resources/omp"` — the bundled sidecar arch must match the DMG (`omp-X.Y.Z-arm64.dmg` = arm64; `omp-X.Y.Z.dmg` = Intel).
 - Launch each package on a compatible host: sidecar reaches `ready`, `get_settings` RPC succeeds, one settings toggle persists.
 - Windows: `file win-unpacked/resources/omp.exe`.
+- Linux: launch the AppImage on a matching-arch host; sidecar reaches `ready`.
 
 ### Phase 6 — Publish
 
@@ -136,14 +143,14 @@ Create the GitHub Release on tag `vX.Y.Z` with:
 
 - `omp-X.Y.Z-arm64.dmg` and `omp-X.Y.Z.dmg`, plus both macOS ZIPs
 - `omp-X.Y.Z-setup.exe` and `omp-X.Y.Z-portable.exe`
-- All generated update metadata — critically, a `latest-mac.yml` covering **both** architectures (the built-in updater resolves DMGs from it; a release without it, or with only one architecture's entries, breaks update checks)
+- Linux `omp-X.Y.Z-x86_64.AppImage` + `.deb` and `omp-X.Y.Z-arm64.AppImage` + `.deb`
 - The changelog as the release body; record the monorepo commit the sidecars were built from, especially when it isn't upstream `main`
 
 Never commit sidecar binaries. Never push to `upstream`.
 
 ### Phase 7 — Post-release
 
-- `site/` needs no edit: version strings and DMG links resolve from the GitHub releases API at page load.
+- `site/` needs no edit: version strings and DMG/installer/AppImage links resolve from the GitHub releases API at page load.
 - Verify the release page lists every expected asset and that the updater feed resolves `latest-mac.yml`.
 
 ## Build, Test, Release

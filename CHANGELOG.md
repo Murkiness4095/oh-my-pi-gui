@@ -2,10 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+
+- Linux builds: AppImage and deb for x64 and arm64, each bundling its matching-arch sidecar (`build:omp:linux` / `build:omp:linux:x64` → `package:linux:arm64` / `package:linux:x64`), plus a CI workflow building both arches.
+
 ## [0.9.13] - 2026-10-01
 
 ### Changed
-
 - Bundled agent rebuilt from upstream `main` (monorepo merge `4e3ed70b`), adding Factory Droid login and fixing role fallback chains and queued prompts during rewind.
 - The stats dashboard's Behavior page is now **Frustration**, matching the redesigned stats API: annoyed / at-the-assistant / angry rates overall and per model version.
 

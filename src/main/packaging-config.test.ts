@@ -18,6 +18,7 @@ interface BuilderConfig {
 	protocols?: { name: string; schemes?: string[] }[];
 	mac?: { extendInfo?: Record<string, unknown> };
 	win?: { target?: { target?: string; arch?: string[] }[] };
+	linux?: { target?: { target?: string; arch?: string[] }[] };
 }
 
 const PACKAGE_ROOT = path.join(__dirname, "..", "..");
@@ -54,7 +55,7 @@ describe("mac bundle configs", () => {
 				.map(entry => entry.file)
 				.sort()
 				.join(","),
-		).toBe("electron-builder.trial.yml,electron-builder.x64.yml,electron-builder.yml");
+		).toBe("electron-builder.x64.yml,electron-builder.yml");
 	});
 
 	it("registers the omp:// scheme that src/main/deep-link.ts handles", () => {
@@ -143,6 +144,25 @@ describe("Windows package config", () => {
 	});
 });
 
+describe("Linux package config", () => {
+	it("ships one matching-arch sidecar plus AppImage and deb per config", () => {
+		for (const [file, sidecar, arch] of [
+			["electron-builder.yml", "resources/omp.linux-arm64", "arm64"],
+			["electron-builder.linux-x64.yml", "resources/omp.linux-x64", "x64"],
+		] as const) {
+			const config = parse(fs.readFileSync(path.join(PACKAGE_ROOT, file), "utf8")) as BuilderConfig;
+			expect(
+				config.protocols?.flatMap(protocol => protocol.schemes ?? []),
+				`${file} ships no URL scheme`,
+			).toContain("omp");
+			expect(config.extraResources).toContainEqual({ from: sidecar, to: "omp" });
+			expect(config.linux?.target).toEqual([
+				{ target: "AppImage", arch: [arch] },
+				{ target: "deb", arch: [arch] },
+			]);
+		}
+	});
+});
 /**
  * The shipped CSP is the only thing between model output and an outbound
  * request, and nothing in the renderer enforces it — so it is read back off the

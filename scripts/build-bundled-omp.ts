@@ -119,6 +119,9 @@ function addonFilenamesFor(platformTag: string): readonly string[] {
 
 function sidecarOutName(osName: string, arch: string): string {
 	if (osName === "win32" || osName === "windows") return "omp.exe";
+	// darwin keeps the legacy names (omp / omp.x64); Linux gets explicit
+	// suffixes so all four sidecars can coexist in resources/ at release time.
+	if (osName === "linux") return arch === "x64" ? "omp.linux-x64" : "omp.linux-arm64";
 	return arch === "x64" ? `omp.${arch}` : "omp";
 }
 
@@ -128,7 +131,7 @@ function resolveTarget(): SidecarTarget {
 		const platformTag = `${process.platform}-${process.arch}`;
 		return {
 			platformTag,
-			out: path.join(guiRoot, "resources", process.platform === "win32" ? "omp.exe" : "omp"),
+			out: path.join(guiRoot, "resources", sidecarOutName(process.platform, process.arch)),
 			addonFilenames: addonFilenamesFor(platformTag),
 		};
 	}

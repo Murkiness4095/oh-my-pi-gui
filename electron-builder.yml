@@ -8,7 +8,7 @@ files:
   - out/**/*
   - "!node_modules/**/*"
 extraResources:
-  - from: resources/omp
+  - from: resources/omp.linux-arm64
     to: omp
 # `omp://` deep links only work if LaunchServices sees CFBundleURLTypes, which
 # this block is the only thing that writes. Without it `open-url` never fires in
@@ -76,18 +76,22 @@ nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
-
 linux:
   icon: resources/icons
   category: Development
+  # arm64 only here — x64 builds go through electron-builder.linux-x64.yml, which
+  # points extraResources at resources/omp.linux-x64 instead of
+  # resources/omp.linux-arm64. Building x64 from this config would ship the
+  # wrong-arch sidecar. See package:linux:arm64 / package:linux:x64.
   target:
     - target: AppImage
-      arch: [x64]
+      arch: [arm64]
     - target: deb
-      arch: [x64]
+      arch: [arm64]
   desktop:
     entry:
       StartupWMClass: omp-gui
+
 
 publish:
   provider: github

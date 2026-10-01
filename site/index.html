@@ -397,6 +397,7 @@
       </a>
       <a class="btn btn-ghost" data-omp-dmg="x64" href="https://github.com/nornzach/oh-my-pi-gui/releases/download/v0.9.11/omp-0.9.11.dmg">Intel build <span class="btn-sub">macOS x64</span></a>
       <a class="btn btn-ghost" data-omp-win href="https://github.com/nornzach/oh-my-pi-gui/releases/download/v0.9.11/omp-0.9.11-setup.exe">Windows build <span class="btn-sub">x64 installer</span></a>
+      <a class="btn btn-ghost" data-omp-linux="x64" href="https://github.com/nornzach/oh-my-pi-gui/releases">Linux build <span class="btn-sub">x64 AppImage</span></a>
     </div>
     <p class="hero-fine rise d5">Bundled sidecar — no agent, bun, or Node to install · <a href="https://github.com/nornzach/oh-my-pi-gui/releases">All releases</a> · <a href="#install">Build from source</a></p>
     <div class="hero-shot-wrap rise d5">
@@ -607,6 +608,8 @@
         </a>
         <a class="btn btn-ghost" data-omp-dmg="x64" href="https://github.com/nornzach/oh-my-pi-gui/releases/download/v0.9.11/omp-0.9.11.dmg">Intel <span class="btn-sub">x64</span></a>
         <a class="btn btn-ghost" data-omp-win href="https://github.com/nornzach/oh-my-pi-gui/releases/download/v0.9.11/omp-0.9.11-setup.exe">Windows <span class="btn-sub">x64 installer</span></a>
+        <a class="btn btn-ghost" data-omp-linux="x64" href="https://github.com/nornzach/oh-my-pi-gui/releases">Linux <span class="btn-sub">x64 AppImage</span></a>
+        <a class="btn btn-ghost" data-omp-linux="arm64" href="https://github.com/nornzach/oh-my-pi-gui/releases">Linux <span class="btn-sub">arm64 AppImage</span></a>
         <a class="btn btn-ghost" href="https://github.com/nornzach/oh-my-pi-gui/releases">All releases</a>
       </div>
       <div class="install-note">
@@ -722,6 +725,11 @@ bun --cwd packages/gui run package:mac:arm64 -- --publish never <span class="c">
     return assets.find((asset) => asset.name === name)?.browser_download_url;
   };
   const windowsInstallerUrl = (assets) => assets.find((asset) => asset.name.endsWith("-setup.exe"))?.browser_download_url;
+  const linuxAppImageUrl = (assets, tag, architecture) => {
+    const version = tag.replace(/^v/, "");
+    const suffix = architecture === "arm64" ? "arm64" : "x86_64";
+    return assets.find((asset) => asset.name === `omp-${version}-${suffix}.AppImage`)?.browser_download_url;
+  };
 
   fetch("https://api.github.com/repos/nornzach/oh-my-pi-gui/releases/latest", {
     headers: { accept: "application/vnd.github+json" },
@@ -738,6 +746,11 @@ bun --cwd packages/gui run package:mac:arm64 -- --publish never <span class="c">
       }
       const windowsUrl = windowsInstallerUrl(release.assets);
       if (windowsUrl) document.querySelectorAll("[data-omp-win]").forEach((element) => { element.href = windowsUrl; });
+      for (const architecture of ["x64", "arm64"]) {
+        const url = linuxAppImageUrl(release.assets, release.tag_name, architecture);
+        if (!url) continue;
+        document.querySelectorAll(`[data-omp-linux="${architecture}"]`).forEach((element) => { element.href = url; });
+      }
     })
     .catch(() => {});
 </script>

@@ -1,0 +1,40 @@
+appId: sh.omp.gui
+productName: omp
+afterPack: scripts/after-pack.cjs
+directories:
+  buildResources: resources
+  output: dist
+files:
+  - out/**/*
+  - "!node_modules/**/*"
+extraResources:
+  - from: resources/omp.linux-x64
+    to: omp
+# Must match electron-builder.yml: the x64 bundle is a separate config, so the
+# `omp://` scheme has to be declared here too or Linux x64 gets no deep links.
+protocols:
+  - name: omp
+    schemes:
+      - omp
+asar: true
+compression: maximum
+
+linux:
+  icon: resources/icons
+  category: Development
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  desktop:
+    entry:
+      StartupWMClass: omp-gui
+
+publish:
+  provider: github
+  owner: nornzach
+  repo: oh-my-pi-gui
+
+electronLanguages:
+  - en
