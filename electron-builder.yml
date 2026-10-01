@@ -1,5 +1,6 @@
 appId: sh.omp.gui
 productName: omp
+executableName: omp
 electronVersion: 35.7.5
 afterPack: scripts/after-pack.cjs
 directories:
@@ -78,8 +79,10 @@ nsis:
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
 linux:
+  executableName: omp
   icon: resources/icons
   category: Development
+  maintainer: Stencil Labs, Inc.
   # arm64 only here — x64 builds go through electron-builder.linux-x64.yml, which
   # points extraResources at resources/omp.linux-x64 instead of
   # resources/omp.linux-arm64. Building x64 from this config would ship the

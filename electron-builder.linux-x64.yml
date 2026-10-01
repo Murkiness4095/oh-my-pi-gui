@@ -1,5 +1,6 @@
 appId: sh.omp.gui
 productName: omp
+executableName: omp
 electronVersion: 35.7.5
 afterPack: scripts/after-pack.cjs
 directories:
@@ -21,8 +22,10 @@ asar: true
 compression: maximum
 
 linux:
+  executableName: omp
   icon: resources/icons
   category: Development
+  maintainer: Stencil Labs, Inc.
   target:
     - target: AppImage
       arch: [x64]
